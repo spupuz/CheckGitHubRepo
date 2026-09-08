@@ -669,14 +669,22 @@
     openIssues:r=>r.openIssues==null?-1:r.openIssues, stars:r=>r.stars, updated:r=>r.updatedRaw?Date.parse(r.updatedRaw):0
   };
   function applyFilters(list){
-    let rows=list.slice();
-    if($('onlyWithPRs').checked) rows=rows.filter(r=>r.openPRs>0);
+    const onlyWithPRs=$('onlyWithPRs').checked;
     const f=$('filter').value.trim().toLowerCase();
-    if(f) rows=rows.filter(r=>r.name.toLowerCase().includes(f)||r.fullName.toLowerCase().includes(f));
-    const lang=$('fLang').value; if(lang) rows=rows.filter(r=>(r.language||'—')===lang);
-    const own=$('fOwner').value; if(own) rows=rows.filter(r=>r.owner===own);
-    const min=parseInt($('fMin').value,10); if(!isNaN(min)) rows=rows.filter(r=>(r.openPRs||0)>=min);
-    return rows;
+    const lang=$('fLang').value;
+    const own=$('fOwner').value;
+    const min=parseInt($('fMin').value,10);
+    const checkMin=!isNaN(min);
+
+    // ⚡ Bolt: Single O(n) pass to avoid intermediate array allocations and redundant iterations
+    return list.filter(r=>{
+      if(onlyWithPRs && !(r.openPRs>0)) return false;
+      if(f && !r.name.toLowerCase().includes(f) && !r.fullName.toLowerCase().includes(f)) return false;
+      if(lang && (r.language||'—')!==lang) return false;
+      if(own && r.owner!==own) return false;
+      if(checkMin && !((r.openPRs||0)>=min)) return false;
+      return true;
+    });
   }
   function multiOwner(){ return new Set(repos.map(r=>r.owner)).size>1; }
   function showSkeleton(n){ const tb=$('tbody'); let h=''; for(let i=0;i<n;i++) h+=`<tr><td colspan="9"><div class="skel" style="width:${60+Math.random()*35}%"></div></td></tr>`; tb.innerHTML=h; }
