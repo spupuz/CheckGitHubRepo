@@ -131,7 +131,8 @@
 
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  thead th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--artifact-text-muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--artifact-border); cursor: pointer; user-select: none; white-space: nowrap; }
+  thead th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--artifact-text-muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--artifact-border); cursor: pointer; user-select: none; white-space: nowrap; outline: none; }
+  thead th:focus-visible { outline: 2px solid var(--artifact-accent); outline-offset: -2px; border-radius: 4px; }
   thead th.num { text-align: right; }
   thead th .arrow { opacity: .55; font-size: 10px; }
   tbody td { padding: 11px 12px; border-bottom: 1px solid var(--artifact-border); vertical-align: middle; }
@@ -300,15 +301,15 @@
       <table id="table">
         <thead>
           <tr>
-            <th data-sort="name" aria-sort="none">Repository <span class="arrow"></span></th>
-            <th data-sort="openPRs" class="num" aria-sort="descending">PR aperte <span class="arrow">▼</span></th>
-            <th data-sort="draftPRs" class="num" aria-sort="none">Draft <span class="arrow"></span></th>
-            <th data-sort="noReviewer" class="num" aria-sort="none">No reviewer <span class="arrow"></span></th>
-            <th data-sort="stalePRs" class="num" aria-sort="none">Ferme &gt;30g <span class="arrow"></span></th>
-            <th data-sort="oldest" class="num" aria-sort="none">PR più vecchia <span class="arrow"></span></th>
-            <th data-sort="openIssues" class="num" aria-sort="none">Issue <span class="arrow"></span></th>
-            <th data-sort="stars" class="num" aria-sort="none">Stelle <span class="arrow"></span></th>
-            <th data-sort="updated" class="num" aria-sort="none">Aggiornato <span class="arrow"></span></th>
+            <th data-sort="name" tabindex="0" role="button" aria-sort="none">Repository <span class="arrow"></span></th>
+            <th data-sort="openPRs" tabindex="0" role="button" class="num" aria-sort="descending">PR aperte <span class="arrow">▼</span></th>
+            <th data-sort="draftPRs" tabindex="0" role="button" class="num" aria-sort="none">Draft <span class="arrow"></span></th>
+            <th data-sort="noReviewer" tabindex="0" role="button" class="num" aria-sort="none">No reviewer <span class="arrow"></span></th>
+            <th data-sort="stalePRs" tabindex="0" role="button" class="num" aria-sort="none">Ferme &gt;30g <span class="arrow"></span></th>
+            <th data-sort="oldest" tabindex="0" role="button" class="num" aria-sort="none">PR più vecchia <span class="arrow"></span></th>
+            <th data-sort="openIssues" tabindex="0" role="button" class="num" aria-sort="none">Issue <span class="arrow"></span></th>
+            <th data-sort="stars" tabindex="0" role="button" class="num" aria-sort="none">Stelle <span class="arrow"></span></th>
+            <th data-sort="updated" tabindex="0" role="button" class="num" aria-sort="none">Aggiornato <span class="arrow"></span></th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -994,7 +995,7 @@
   $('onlyWithPRs').addEventListener('change', ()=>{ render(); savePrefs(); syncHash(); });
   ['extended','includeForks','includeArchived','includeCollab','rememberUser'].forEach(id=>$(id).addEventListener('change', savePrefs));
   $('tokenStore').addEventListener('change', saveToken);
-  document.querySelectorAll('thead th[data-sort]').forEach(th=>{ th.addEventListener('click',()=>{ const k=th.dataset.sort; if(sortKey===k) sortDir*=-1; else { sortKey=k; sortDir=(k==='name'||k==='oldest')?1:-1; } updateSortHeaders(); render(); savePrefs(); syncHash(); }); });
+  document.querySelectorAll('thead th[data-sort]').forEach(th=>{ th.addEventListener('click',()=>{ const k=th.dataset.sort; if(sortKey===k) sortDir*=-1; else { sortKey=k; sortDir=(k==='name'||k==='oldest')?1:-1; } updateSortHeaders(); render(); savePrefs(); syncHash(); }); th.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); th.click(); } }); });
   window.addEventListener('resize', ()=>{ if(chartTop) chartTop.resize(); if(chartDist) chartDist.resize(); });
 
   loadPrefs();
