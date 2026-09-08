@@ -2,3 +2,4 @@
 *.sqlite-journal
 *.sqlite-wal
 *.sqlite-shm
+CheckGitHubRepo.code-workspace
