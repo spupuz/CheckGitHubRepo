@@ -703,7 +703,8 @@
       return true;
     });
   }
-  function multiOwner(){ return new Set(repos.map(r=>r.owner)).size>1; }
+  // ⚡ Bolt: Use .some() instead of map/Set to check for multiple owners (O(1) memory, early return)
+  function multiOwner(){ return repos.length>1 && repos.some(r=>r.owner!==repos[0].owner); }
   function showSkeleton(n){ const tb=$('tbody'); let h=''; for(let i=0;i<n;i++) h+=`<tr><td colspan="9"><div class="skel" style="width:${60+Math.random()*35}%"></div></td></tr>`; tb.innerHTML=h; }
   function render(){
     let rows=applyFilters(repos);
