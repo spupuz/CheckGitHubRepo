@@ -106,6 +106,9 @@
   .charts.on { display:grid; }
   @media (max-width:720px){ .charts.on { grid-template-columns:1fr; } }
   .chart-box { height:300px; }
+  .charts-stacked { display:none; grid-template-columns:1fr; gap:22px; margin-bottom:22px; }
+  .charts-stacked.on { display:grid; }
+  .chart-box-tall { height:340px; }
   .chart-title { font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--artifact-text-muted); margin:0 0 6px; }
 
   .agg { display:none; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 22px; }
@@ -163,7 +166,8 @@
     .controls, .toggle-row, .btn, .progress-wrap, .filter-input, .results-tools, .filter-bar { display:none !important; }
     .panel, .stat { box-shadow:none !important; border:1px solid rgba(0,0,0,.12); break-inside:avoid; }
     .charts.on { grid-template-columns:1fr 1fr !important; }
-    .chart-box { height:240px !important; break-inside:avoid; }
+    .charts-stacked.on { grid-template-columns:1fr; }
+    .chart-box, .chart-box-tall { height:240px !important; break-inside:avoid; }
     tbody tr { break-inside:avoid; }
     *,*::before,*::after { animation:none !important; transition:none !important; }
   }
@@ -240,6 +244,17 @@
     <div class="panel" style="margin:0;">
       <p class="chart-title">Distribuzione dei repository per numero di PR</p>
       <div class="chart-box" id="chartDist"></div>
+    </div>
+  </div>
+
+  <div class="charts-stacked" id="historyChartsPanel" data-glean-id="history-charts-panel">
+    <div class="panel" style="margin:0;">
+      <p class="chart-title">Trend PR aperte (ultime scansioni)</p>
+      <div class="chart-box chart-box-tall" id="chartHistoryTotal"></div>
+    </div>
+    <div class="panel" style="margin:0;">
+      <p class="chart-title">Trend per repository (top 5)</p>
+      <div class="chart-box chart-box-tall" id="chartHistoryRepos"></div>
     </div>
   </div>
 
@@ -334,7 +349,7 @@
   const RENDER_CAP=400, STALE_DAYS=30, MAX_PAGES=50;
   const PREF_KEY='ghPrChecker.prefs';
   const etagCache=new Map();
-  let chartTop=null, chartDist=null;
+  let chartTop=null, chartDist=null, chartHistTotal=null, chartHistRepos=null;
   let db=null, dbReady=false, dbDirHandle=null;
   let tokenLogin=null, tokenScopes=null, tokenFine=false;
   const DB_LIB='https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/';
@@ -555,6 +570,7 @@
         db=new SQL.Database(bytes); dbReady=true;
         $('dbPanel').style.display='block';
         renderDBStats();
+        renderHistoryCharts();
         setStatus('Database SQLite caricato ('+file.name+').', '');
       }catch(e){ setStatus('Impossibile caricare il database: '+(e.message||'file non valido'),'error'); }
     };
@@ -765,6 +781,61 @@
       series:[{type:'bar',data:Object.values(buckets),itemStyle:{color:accent,borderRadius:[4,4,0,0]},barMaxWidth:36,label:{show:true,position:'top',color:muted,fontSize:11}}]
     });
   }
+  function toRGBA(hex,a){ if(!hex) return 'rgba(31,111,235,'+a+')'; const m=hex.replace('#',''); if(m.length===3||m.length===6){ const full=m.length===3?m.split('').map(x=>x+x).join(''):m; const n=parseInt(full,16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; } return hex; }
+  function dayKey(d){ const y=d.getFullYear(); const m=('0'+(d.getMonth()+1)).slice(-2); const day=('0'+d.getDate()).slice(-2); return `${y}-${m}-${day}`; }
+  function renderHistoryCharts(){
+    if(typeof echarts==='undefined'||!db) return;
+    try{
+      const r1=db.exec('SELECT COUNT(*) FROM scans');
+      const scanCount=r1&&r1.length&&r1[0].values.length?r1[0].values[0][0]:0;
+      if(scanCount<1){ $('historyChartsPanel').classList.remove('on'); return; }
+      $('historyChartsPanel').classList.add('on');
+      const accent=cssVar('--artifact-accent')||'#1f6feb';
+      const muted=cssVar('--artifact-text-muted')||'#5b6470';
+      const warn=cssVar('--artifact-warn')||'#9a6700';
+      const danger=cssVar('--artifact-danger')||'#cf222e';
+      const axis={ axisLabel:{color:muted,fontSize:10}, axisLine:{lineStyle:{color:muted}} };
+      const now=new Date();
+      const days=[];
+      for(let i=29;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i); days.push({key:dayKey(d),label:d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})}); }
+      const r2=db.exec('SELECT timestamp, total_prs FROM scans ORDER BY id ASC');
+      if(!r2||!r2.length||!r2[0].values.length){ $('historyChartsPanel').classList.remove('on'); return; }
+      const scans=r2[0].values.map(v=>({ts:v[0],total:v[1]}));
+      const totalByDay={};
+      scans.forEach(s=>{ const k=dayKey(new Date(s.ts)); totalByDay[k]=s.total; });
+      const totalSeries=days.map(d=>totalByDay[d.key]!=null?totalByDay[d.key]:null);
+      const hasData=totalSeries.some(v=>v!=null);
+      if(!hasData){ $('historyChartsPanel').classList.remove('on'); return; }
+      const labels=days.map(d=>d.label);
+      if(!chartHistTotal) chartHistTotal=echarts.init($('chartHistoryTotal'),null,{renderer:'svg'});
+      chartHistTotal.setOption({
+        grid:{left:8,right:24,top:20,bottom:24,containLabel:true},
+        tooltip:{trigger:'axis',axisPointer:{type:'cross'}},
+        xAxis:Object.assign({type:'category',data:labels,boundaryGap:false},axis),
+        yAxis:Object.assign({type:'value',minInterval:1},axis),
+        series:[{type:'line',data:totalSeries,smooth:false,connectNulls:true,symbol:'circle',symbolSize:6,lineStyle:{color:accent,width:2.5},itemStyle:{color:accent},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:toRGBA(accent,0.25)},{offset:1,color:toRGBA(accent,0.02)}]}},label:{show:true,position:'top',color:muted,fontSize:10}}]
+      });
+      const r3=db.exec('SELECT r.full_name, SUM(r.open_prs) as total_prs FROM repos r JOIN scans s ON r.scan_id=s.id WHERE s.timestamp >= ? GROUP BY r.full_name ORDER BY total_prs DESC LIMIT 5',[dayKey(new Date(now.getTime()-29*86400000))]);
+      const topRepoNames=r3&&r3.length?r3[0].values.map(v=>v[0]):[];
+      const repoColors=[accent,warn,danger,'#8b5cf6','#06b6d4'];
+      const repoSeries=topRepoNames.map((repoName,idx)=>{
+        const r4=db.exec('SELECT s.timestamp, r.open_prs FROM repos r JOIN scans s ON r.scan_id=s.id WHERE r.full_name=? ORDER BY s.id ASC',[repoName]);
+        const repoByDay={};
+        r4[0].values.forEach(v=>{ repoByDay[dayKey(new Date(v[0]))]=v[1]; });
+        const data=days.map(d=>repoByDay[d.key]!=null?repoByDay[d.key]:null);
+        return {name:repoName,type:'line',smooth:false,connectNulls:true,symbol:'circle',symbolSize:5,lineStyle:{color:repoColors[idx%repoColors.length],width:2},itemStyle:{color:repoColors[idx%repoColors.length]},data};
+      });
+      if(!chartHistRepos) chartHistRepos=echarts.init($('chartHistoryRepos'),null,{renderer:'svg'});
+      chartHistRepos.setOption({
+        grid:{left:8,right:24,top:26,bottom:24,containLabel:true},
+        tooltip:{trigger:'axis',axisPointer:{type:'cross'}},
+        legend:{textStyle:{color:muted,fontSize:11},top:0,itemWidth:14,itemHeight:8,type:'scroll'},
+        xAxis:Object.assign({type:'category',data:labels,boundaryGap:false},axis),
+        yAxis:Object.assign({type:'value',minInterval:1},axis),
+        series:repoSeries
+      });
+    }catch(e){ $('historyChartsPanel').classList.remove('on'); }
+  }
   function updateSummary(){
     const counted=repos.filter(r=>r.openPRs!=null);
     const total=counted.reduce((s,r)=>s+r.openPRs,0);
@@ -851,8 +922,9 @@
         await countREST(repos);
       }
       render(); updateSummary(); renderAgg(); renderCharts();
+      renderHistoryCharts();
       computeDelta(prevSnap); saveSnapshot(); saveToDB();
-      if(dbReady) saveDBToFolder().then(ok=>{ if(!ok&&window.showDirectoryPicker&&dbDirHandle){ setStatus('Autosalvataggio non riuscito: autorizzazione alla cartella scaduta. Dacci accesso o riprova.','warn'); } });
+      if(dbReady) saveDBToFolder().then(ok=>{ renderHistoryCharts(); if(!ok&&window.showDirectoryPicker&&dbDirHandle){ setStatus('Autosalvataggio non riuscito: autorizzazione alla cartella scaduta. Dacci accesso o riprova.','warn'); } });
       lastTs=Date.now(); updateMeta(); saveCache();
       const total=repos.reduce((s,r)=>s+(r.openPRs||0),0);
       const fails=repos.filter(r=>r.openPRs==null).length;
@@ -875,12 +947,12 @@
   async function retryFailed(){
     if(running) return; const failed=repos.filter(r=>r.openPRs==null); if(!failed.length) return;
     controller=new AbortController(); setRunning(true); setStatus(`Riprovo ${failed.length} conteggi…`);
-    try{ await countREST(failed); render(); updateSummary(); renderCharts(); lastTs=Date.now(); updateMeta(); saveCache(); saveSnapshot(); setStatus('Riprova completata.',''); }
+    try{ await countREST(failed); render(); updateSummary(); renderCharts(); renderHistoryCharts(); lastTs=Date.now(); updateMeta(); saveCache(); saveSnapshot(); setStatus('Riprova completata.',''); }
     catch(e){ setStatus(e.message||'Errore.','error'); }
     finally{ setRunning(false); }
   }
 
-  $('tbody').addEventListener('click', e=>{ const el=e.target.closest('[data-retry]'); if(!el||running) return; const fn=el.getAttribute('data-retry'); const r=repos.find(x=>x.fullName===fn); if(!r) return; controller=new AbortController(); (async()=>{ el.textContent='…'; try{ r.openPRs=await countOpenPRsREST(fn); }catch(_){ } render(); updateSummary(); renderCharts(); saveCache(); })(); });
+  $('tbody').addEventListener('click', e=>{ const el=e.target.closest('[data-retry]'); if(!el||running) return; const fn=el.getAttribute('data-retry'); const r=repos.find(x=>x.fullName===fn); if(!r) return; controller=new AbortController(); (async()=>{ el.textContent='…'; try{ r.openPRs=await countOpenPRsREST(fn); }catch(_){ } render(); updateSummary(); renderCharts(); renderHistoryCharts(); saveCache(); })(); });
 
   function exportCSV(){
     if(!repos.length) return;
@@ -935,7 +1007,7 @@
       lastDelta=loadSnapshot();
       $('resultsPanel').style.display='block'; populateFilters();
       if(pendingLang){ $('fLang').value=pendingLang; } if(pendingOwn){ $('fOwner').value=pendingOwn; }
-      render(); updateSummary(); renderAgg(); renderCharts(); computeDelta(lastDelta); updateMeta();
+      render(); updateSummary(); renderAgg(); renderCharts(); renderHistoryCharts(); computeDelta(lastDelta); updateMeta();
       const total=repos.reduce((s,r)=>s+(r.openPRs||0),0);
       setStatus(`Dati in cache (${repos.length} repo, ${total} PR aperte). Premi "Aggiorna" per ricaricare.`,'');
       return true;
@@ -1004,7 +1076,7 @@
   ['extended','includeForks','includeArchived','includeCollab','rememberUser'].forEach(id=>$(id).addEventListener('change', savePrefs));
   $('tokenStore').addEventListener('change', saveToken);
   document.querySelectorAll('thead th[data-sort]').forEach(th=>{ th.addEventListener('click',()=>{ const k=th.dataset.sort; if(sortKey===k) sortDir*=-1; else { sortKey=k; sortDir=(k==='name'||k==='oldest')?1:-1; } updateSortHeaders(); render(); savePrefs(); syncHash(); }); th.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); th.click(); } }); });
-  window.addEventListener('resize', ()=>{ if(chartTop) chartTop.resize(); if(chartDist) chartDist.resize(); });
+  window.addEventListener('resize', ()=>{ if(chartTop) chartTop.resize(); if(chartDist) chartDist.resize(); if(chartHistTotal) chartHistTotal.resize(); if(chartHistRepos) chartHistRepos.resize(); });
 
   loadPrefs();
   loadTokenStorePref();
