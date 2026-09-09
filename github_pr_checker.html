@@ -958,7 +958,7 @@
     if(!repos.length) return;
     const rows=applyFilters(repos);
     const head=['owner','repository','full_name','open_prs','draft_prs','no_reviewer','stale_prs_30d','oldest_pr_days','open_issues','stars','language','private','fork','archived','updated_at','url'];
-    const line=arr=>arr.map(v=>{ const s=String(v==null?'':v); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(',');
+    const line=arr=>arr.map(v=>{ let s=String(v==null?'':v); if(/^[=+\-@]/.test(s)) s="'"+s; return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(',');
     const out=[line(head)].concat(rows.map(r=>line([r.owner,r.name,r.fullName,r.openPRs==null?'':r.openPRs,r.draftPRs==null?'':r.draftPRs,r.noReviewer==null?'':r.noReviewer,r.stalePRs==null?'':r.stalePRs,daysBetween(r.oldestPRDate)==null?'':daysBetween(r.oldestPRDate),r.openIssues==null?'':r.openIssues,r.stars,r.language||'',r.private,r.fork,r.archived,r.updatedRaw||'',r.url])));
     downloadBlob(out.join('\n'),'text/csv;charset=utf-8;',`github_open_prs_${getUsernames().join('_')||'export'}.csv`);
   }
