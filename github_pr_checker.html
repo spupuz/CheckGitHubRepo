@@ -710,7 +710,12 @@
     let rows=applyFilters(repos);
     rows.sort((a,b)=>{ const va=SORTERS[sortKey](a), vb=SORTERS[sortKey](b); if(typeof va==='string') return va<vb?-sortDir:va>vb?sortDir:0; return (va-vb)*sortDir; });
     const tb=$('tbody'); const totalRows=rows.length;
-    if(!totalRows){ tb.innerHTML='<tr><td colspan="9" class="empty">Nessun repository corrisponde ai filtri.</td></tr>'; $('showAllWrap').style.display='none'; return; }
+    if(!totalRows){
+      const isFiltered = $('onlyWithPRs').checked || $('filter').value.trim() || $('fLang').value || $('fOwner').value || $('fMin').value;
+      tb.innerHTML=`<tr><td colspan="9" class="empty">Nessun repository corrisponde ai filtri.${isFiltered ? '<br><button class="btn secondary small" id="clearFiltersBtn" style="margin-top: 12px;">Azzera filtri</button>' : ''}</td></tr>`;
+      $('showAllWrap').style.display='none';
+      return;
+    }
     const capped=!showAll&&totalRows>RENDER_CAP; const view=capped?rows.slice(0,RENDER_CAP):rows;
     const mo=multiOwner(); const prev=lastDelta&&lastDelta.map?lastDelta.map:null;
     tb.innerHTML=view.map(r=>{
@@ -953,7 +958,20 @@
     finally{ setRunning(false); }
   }
 
-  $('tbody').addEventListener('click', e=>{ const el=e.target.closest('[data-retry]'); if(!el||running) return; const fn=el.getAttribute('data-retry'); const r=repos.find(x=>x.fullName===fn); if(!r) return; controller=new AbortController(); (async()=>{ el.textContent='…'; try{ r.openPRs=await countOpenPRsREST(fn); }catch(_){ } render(); updateSummary(); renderCharts(); renderHistoryCharts(); saveCache(); })(); });
+  $('tbody').addEventListener('click', e=>{
+    if(e.target.id === 'clearFiltersBtn') {
+      $('filter').value = '';
+      $('fLang').value = '';
+      $('fOwner').value = '';
+      $('fMin').value = '';
+      $('onlyWithPRs').checked = false;
+      render();
+      syncHash();
+      savePrefs();
+      return;
+    }
+    const el=e.target.closest('[data-retry]'); if(!el||running) return; const fn=el.getAttribute('data-retry'); const r=repos.find(x=>x.fullName===fn); if(!r) return; controller=new AbortController(); (async()=>{ el.textContent='…'; try{ r.openPRs=await countOpenPRsREST(fn); }catch(_){ } render(); updateSummary(); renderCharts(); renderHistoryCharts(); saveCache(); })();
+  });
 
   function exportCSV(){
     if(!repos.length) return;
