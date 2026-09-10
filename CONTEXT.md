@@ -4,7 +4,7 @@ Facts, conventions, and invariants that opencode agents should know and respect 
 
 ## Project Overview
 
-**GitHub Open PR Checker** is a **self-contained, single-file, browser-based web tool** (UI in Italian). Open `github_pr_checker.html` in a browser — there is no server, no build step, and no package manager.
+**GitHub Open PR Checker** is a **self-contained, single-file, browser-based web tool** (UI in English). Open `github_pr_checker.html` in a browser — there is no server, no build step, and no package manager.
 
 It scans one or more GitHub users/orgs and shows, per repository, the open pull requests with health metrics (draft count, "no reviewer", stale PRs >30d, oldest PR age, open issues, stars, last update), charts (ECharts), aggregations (top authors, frequent labels), delta vs. the previous scan, and CSV/JSON export. Data persists in an in-browser SQLite DB via `sql.js` (WASM), auto-saved to a user-selected folder.
 

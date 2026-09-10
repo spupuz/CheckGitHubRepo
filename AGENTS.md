@@ -35,5 +35,5 @@ There are **no tests, no linter, no CI**. The verification gate is a careful rev
 ## Conventions
 
 - Commit messages: **conventional commits** — `feat:`, `fix:`, `fix(ui):`, `refactor:`, `chore:`, `docs:`, `security:`.
-- UI copy and labels are **Italian** — keep new UI strings in Italian.
+- UI copy and labels are **English** — keep new UI strings in English.
 - Keep everything in the single `github_pr_checker.html` unless there is a strong reason to split.

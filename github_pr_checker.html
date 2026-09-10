@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -178,37 +178,37 @@
   <header class="page" data-glean-id="page-header">
     <p class="eyebrow">GitHub · Pull Requests</p>
     <h1>Open PR Checker</h1>
-    <p class="sub">Scansiona tutti i repository di uno o più account GitHub e mostra, per ognuno, le pull request aperte, con metriche di salute, grafici e confronto rispetto alla scansione precedente. Con un token usa la GraphQL API e include i repository privati.</p>
+    <p class="sub">Scans all repositories of one or more GitHub accounts and shows, for each, the open pull requests with health metrics, charts, and a comparison against the previous scan. With a token it uses the GraphQL API and includes private repositories.</p>
   </header>
 
   <div class="panel" data-glean-id="controls-panel">
     <div class="controls">
       <div class="field">
-        <label for="username">Username o organizzazioni <span class="hint">(anche più, separati da virgola)</span></label>
-        <input type="text" id="username" placeholder="es. torvalds, github" autocomplete="off" spellcheck="false">
-        <button class="btn secondary small" id="useTokenLogin" type="button" style="display:none;">Usa il mio account</button>
+        <label for="username">Username or organizations <span class="hint">(also multiple, comma-separated)</span></label>
+        <input type="text" id="username" placeholder="e.g. torvalds, github" autocomplete="off" spellcheck="false">
+        <button class="btn secondary small" id="useTokenLogin" type="button" style="display:none;">Use my account</button>
       </div>
       <div class="field">
-        <label for="token">Personal access token <span class="hint">(opzionale, consigliato)</span></label>
-        <input type="password" id="token" placeholder="ghp_… — repo privati, GraphQL, limiti alti" autocomplete="off" spellcheck="false">
+        <label for="token">Personal access token <span class="hint">(optional, recommended)</span></label>
+        <input type="password" id="token" placeholder="ghp_… — private repos, GraphQL, higher limits" autocomplete="off" spellcheck="false">
       </div>
-      <button class="btn" id="run" type="button">Controlla i repository</button>
-      <button class="btn danger" id="cancel" type="button" style="display:none;">Annulla</button>
+      <button class="btn" id="run" type="button">Check repositories</button>
+      <button class="btn danger" id="cancel" type="button" style="display:none;">Cancel</button>
     </div>
     <div class="toggle-row">
-      <label><input type="checkbox" id="extended" checked> Metriche estese <span class="hint">(draft, età, issue, reviewer — richiede token)</span></label>
-      <label><input type="checkbox" id="includeForks"> Includi i fork</label>
-      <label><input type="checkbox" id="includeArchived"> Includi gli archiviati</label>
-      <label><input type="checkbox" id="includeCollab"> Includi repo come collaboratore/membro</label>
-      <label><input type="checkbox" id="rememberUser"> Ricorda username e opzioni</label>
+      <label><input type="checkbox" id="extended" checked> Extended metrics <span class="hint">(draft, age, issues, reviewer — requires token)</span></label>
+      <label><input type="checkbox" id="includeForks"> Include forks</label>
+      <label><input type="checkbox" id="includeArchived"> Include archived</label>
+      <label><input type="checkbox" id="includeCollab"> Include repos as collaborator/member</label>
+      <label><input type="checkbox" id="rememberUser"> Remember username and options</label>
       <span class="token-store">Token:
-        <select id="tokenStore" aria-label="Come salvare il token">
-          <option value="local" selected>questo browser</option>
-          <option value="session">solo questa sessione</option>
-          <option value="none">non salvare</option>
+        <select id="tokenStore" aria-label="How to save the token">
+          <option value="local" selected>this browser</option>
+          <option value="session">this session only</option>
+          <option value="none">don't save</option>
         </select>
       </span>
-      <button class="btn secondary small" id="forgetToken" type="button" style="display:none;">Dimentica token</button>
+      <button class="btn secondary small" id="forgetToken" type="button" style="display:none;">Forget token</button>
     </div>
     <div class="statusbar">
       <p id="status" role="status" aria-live="polite"></p>
@@ -220,94 +220,94 @@
   </div>
 
   <div class="summary" id="summary" data-glean-id="summary-stats">
-    <div class="stat"><div class="v" id="statRepos">–</div><div class="l">Repository scansionati</div></div>
-    <div class="stat"><div class="v accent" id="statPRs">–</div><div class="l">PR aperte totali</div></div>
-    <div class="stat"><div class="v" id="statWithPRs">–</div><div class="l">Repo con PR aperte</div></div>
-    <div class="stat"><div class="v" id="statTop">–</div><div class="l">Massimo in un repo</div></div>
-    <div class="stat"><div class="v" id="statDraft">–</div><div class="l">PR in draft</div></div>
-    <div class="stat"><div class="v warnc" id="statNoRev">–</div><div class="l">PR senza reviewer</div></div>
-    <div class="stat"><div class="v warnc" id="statStale">–</div><div class="l">PR ferme &gt;30g</div></div>
-    <div class="stat"><div class="v" id="statIssues">–</div><div class="l">Issue aperte</div></div>
+    <div class="stat"><div class="v" id="statRepos">–</div><div class="l">Repositories scanned</div></div>
+    <div class="stat"><div class="v accent" id="statPRs">–</div><div class="l">Total open PRs</div></div>
+    <div class="stat"><div class="v" id="statWithPRs">–</div><div class="l">Repos with open PRs</div></div>
+    <div class="stat"><div class="v" id="statTop">–</div><div class="l">Max in a repo</div></div>
+    <div class="stat"><div class="v" id="statDraft">–</div><div class="l">Draft PRs</div></div>
+    <div class="stat"><div class="v warnc" id="statNoRev">–</div><div class="l">PRs without reviewer</div></div>
+    <div class="stat"><div class="v warnc" id="statStale">–</div><div class="l">Stale PRs &gt;30d</div></div>
+    <div class="stat"><div class="v" id="statIssues">–</div><div class="l">Open issues</div></div>
   </div>
 
   <div class="delta panel" id="deltaPanel" data-glean-id="delta-panel">
-    <h3>Variazioni dall'ultima scansione</h3>
+    <h3>Changes since last scan</h3>
     <div class="delta-row" id="deltaRow"></div>
     <ul class="delta-list" id="deltaList"></ul>
   </div>
 
   <div class="charts" id="chartsPanel" data-glean-id="charts-panel">
     <div class="panel" style="margin:0;">
-      <p class="chart-title">Top repository per PR aperte</p>
+      <p class="chart-title">Top repositories by open PRs</p>
       <div class="chart-box" id="chartTop"></div>
     </div>
     <div class="panel" style="margin:0;">
-      <p class="chart-title">Distribuzione dei repository per numero di PR</p>
+      <p class="chart-title">Repository distribution by number of PRs</p>
       <div class="chart-box" id="chartDist"></div>
     </div>
   </div>
 
   <div class="charts-stacked" id="historyChartsPanel" data-glean-id="history-charts-panel">
     <div class="panel" style="margin:0;">
-      <p class="chart-title">Trend PR aperte (ultime scansioni)</p>
+      <p class="chart-title">Open PRs trend (recent scans)</p>
       <div class="chart-box chart-box-tall" id="chartHistoryTotal"></div>
     </div>
     <div class="panel" style="margin:0;">
-      <p class="chart-title">Trend per repository (top 5)</p>
+      <p class="chart-title">Trend by repository (top 5)</p>
       <div class="chart-box chart-box-tall" id="chartHistoryRepos"></div>
     </div>
   </div>
 
   <div class="agg" id="aggPanel" data-glean-id="aggregation-panel">
     <div class="panel" style="margin:0;">
-      <h3>Top autori di PR aperte</h3>
+      <h3>Top authors of open PRs</h3>
       <div class="chips" id="aggAuthors"></div>
     </div>
     <div class="panel" style="margin:0;">
-      <h3>Label più frequenti</h3>
+      <h3>Most frequent labels</h3>
       <div class="chips" id="aggLabels"></div>
     </div>
   </div>
 
   <div class="panel" id="resultsPanel" data-glean-id="results-panel" style="display:none;">
     <div class="results-head">
-      <h2>Repository</h2>
+      <h2>Repositories</h2>
       <div class="results-tools">
-        <button class="btn secondary small" id="copyLink" type="button">Copia link</button>
-        <button class="btn secondary small" id="retryFailed" type="button" style="display:none;">Riprova falliti</button>
-        <button class="btn secondary small" id="refreshBtn" type="button">Aggiorna</button>
+        <button class="btn secondary small" id="copyLink" type="button">Copy link</button>
+        <button class="btn secondary small" id="retryFailed" type="button" style="display:none;">Retry failed</button>
+        <button class="btn secondary small" id="refreshBtn" type="button">Refresh</button>
         <button class="btn secondary small" id="csv" type="button">Export CSV</button>
         <button class="btn secondary small" id="json" type="button">Export JSON</button>
-        <button class="btn secondary small" id="pickFolder" type="button" title="Scegli la cartella in cui salvare automaticamente il database SQLite dopo ogni scansione">Scegli cartella</button>
-        <button class="btn secondary small" id="downloadDB" type="button" title="Scarica il database SQLite con lo storico delle scansioni">Salva DB</button>
-        <label class="btn secondary small" style="cursor:pointer;" title="Carica un database SQLite precedentemente salvato">Carica DB<input type="file" id="loadDB" accept=".sqlite,.db" style="display:none;"></label>
+        <button class="btn secondary small" id="pickFolder" type="button" title="Choose the folder to automatically save the SQLite database after each scan">Choose folder</button>
+        <button class="btn secondary small" id="downloadDB" type="button" title="Download the SQLite database with scan history">Save DB</button>
+        <label class="btn secondary small" style="cursor:pointer;" title="Load a previously saved SQLite database">Load DB<input type="file" id="loadDB" accept=".sqlite,.db" style="display:none;"></label>
       </div>
     </div>
     <div class="filter-bar">
-      <label style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--artifact-text-muted);"><input type="checkbox" id="onlyWithPRs"> Solo con PR aperte</label>
-      <input type="text" id="filter" class="filter-input" placeholder="Filtra per nome…" autocomplete="off">
-      <select id="fLang" aria-label="Filtra per linguaggio"><option value="">Tutti i linguaggi</option></select>
-      <select id="fOwner" aria-label="Filtra per owner" style="display:none;"><option value="">Tutti gli owner</option></select>
-      <input type="number" id="fMin" class="num-input" min="0" placeholder="Min PR" aria-label="PR minime">
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--artifact-text-muted);"><input type="checkbox" id="onlyWithPRs"> Only with open PRs</label>
+      <input type="text" id="filter" class="filter-input" placeholder="Filter by name…" autocomplete="off">
+      <select id="fLang" aria-label="Filter by language"><option value="">All languages</option></select>
+      <select id="fOwner" aria-label="Filter by owner" style="display:none;"><option value="">All owners</option></select>
+      <input type="number" id="fMin" class="num-input" min="0" placeholder="Min PR" aria-label="Min PRs">
     </div>
     <p class="results-meta" id="resultsMeta"></p>
     <div id="dbPanel" style="display:none;margin-bottom:18px;padding:14px 16px;background:var(--artifact-surface-alt);border:1px solid var(--artifact-border);border-radius:12px;">
       <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:stretch;">
         <div style="flex:1 1 140px;min-width:120px;">
           <div id="dbScans" style="font-size:24px;font-weight:680;">–</div>
-          <div style="font-size:12px;color:var(--artifact-text-muted);">Scansioni nel DB</div>
+          <div style="font-size:12px;color:var(--artifact-text-muted);">Scans in DB</div>
         </div>
         <div style="flex:1 1 140px;min-width:120px;">
           <div id="dbLatestPRs" style="font-size:24px;font-weight:680;">–</div>
-          <div style="font-size:12px;color:var(--artifact-text-muted);">PR ultima scansione</div>
+          <div style="font-size:12px;color:var(--artifact-text-muted);">PRs in latest scan</div>
         </div>
         <div style="flex:1 1 140px;min-width:120px;">
           <div id="dbAvgPRs" style="font-size:24px;font-weight:680;">–</div>
-          <div style="font-size:12px;color:var(--artifact-text-muted);">Media PR / scansione</div>
+          <div style="font-size:12px;color:var(--artifact-text-muted);">Avg PRs / scan</div>
         </div>
         <div style="flex:1 1 140px;min-width:120px;">
           <div id="dbDelta" style="font-size:24px;font-weight:680;">–</div>
-          <div style="font-size:12px;color:var(--artifact-text-muted);">Δ vs scansioni precedenti</div>
+          <div style="font-size:12px;color:var(--artifact-text-muted);">Δ vs previous scans</div>
         </div>
       </div>
       <div id="dbInfo" style="font-size:12px;color:var(--artifact-text-muted);margin-top:10px;"></div>
@@ -317,14 +317,14 @@
         <thead>
           <tr>
             <th data-sort="name" tabindex="0" role="button" aria-sort="none">Repository <span class="arrow"></span></th>
-            <th data-sort="openPRs" tabindex="0" role="button" class="num" aria-sort="descending">PR aperte <span class="arrow">▼</span></th>
+            <th data-sort="openPRs" tabindex="0" role="button" class="num" aria-sort="descending">Open PRs <span class="arrow">▼</span></th>
             <th data-sort="draftPRs" tabindex="0" role="button" class="num" aria-sort="none">Draft <span class="arrow"></span></th>
             <th data-sort="noReviewer" tabindex="0" role="button" class="num" aria-sort="none">No reviewer <span class="arrow"></span></th>
-            <th data-sort="stalePRs" tabindex="0" role="button" class="num" aria-sort="none">Ferme &gt;30g <span class="arrow"></span></th>
-            <th data-sort="oldest" tabindex="0" role="button" class="num" aria-sort="none">PR più vecchia <span class="arrow"></span></th>
-            <th data-sort="openIssues" tabindex="0" role="button" class="num" aria-sort="none">Issue <span class="arrow"></span></th>
-            <th data-sort="stars" tabindex="0" role="button" class="num" aria-sort="none">Stelle <span class="arrow"></span></th>
-            <th data-sort="updated" tabindex="0" role="button" class="num" aria-sort="none">Aggiornato <span class="arrow"></span></th>
+            <th data-sort="stalePRs" tabindex="0" role="button" class="num" aria-sort="none">Stale &gt;30d <span class="arrow"></span></th>
+            <th data-sort="oldest" tabindex="0" role="button" class="num" aria-sort="none">Oldest PR <span class="arrow"></span></th>
+            <th data-sort="openIssues" tabindex="0" role="button" class="num" aria-sort="none">Issues <span class="arrow"></span></th>
+            <th data-sort="stars" tabindex="0" role="button" class="num" aria-sort="none">Stars <span class="arrow"></span></th>
+            <th data-sort="updated" tabindex="0" role="button" class="num" aria-sort="none">Updated <span class="arrow"></span></th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -334,7 +334,7 @@
   </div>
 
   <footer class="note" data-glean-id="footer-note">
-    Dati in tempo reale dalle API di GitHub. Con token: <code class="inline">GraphQL API</code> (fino a 50 repo per richiesta, con draft/issue/età/reviewer). Senza token: <code class="inline">REST API</code> con header <code class="inline">Link</code> per il conteggio esatto delle PR. Limiti: 60 richieste/ora senza token, 5.000/ora con token; le richieste condizionali (ETag/304) non consumano quota. Draft, reviewer mancanti, PR ferme e autori sono calcolati sulle PR più vecchie campionate (fino a 50 per repo); i conteggi totali di PR e issue sono sempre esatti. Le variazioni confrontano l'ultima scansione salvata in questo browser. I grafici richiedono la connessione (ECharts via CDN). SQLite: ogni scansione viene registrata in un database in memoria (tabelle <code class="inline">scans</code>, <code class="inline">repos</code>, <code class="inline">authors</code>, <code class="inline">labels</code>); usa <code class="inline">Scegli cartella</code> per il salvataggio automatico dopo ogni scansione (Chrome/Edge), oppure <code class="inline">Salva DB</code> per scaricare il file nella stessa cartella del tool, e <code class="inline">Carica DB</code> per riaccumulare lo storico. Se questa anteprima blocca le chiamate esterne, scarica il file e aprilo nel browser.
+    Real-time data from GitHub APIs. With token: <code class="inline">GraphQL API</code> (up to 50 repos per request, with draft/issue/age/reviewer). Without token: <code class="inline">REST API</code> with <code class="inline">Link</code> header for exact PR counts. Limits: 60 requests/hour without token, 5,000/hour with token; conditional requests (ETag/304) do not consume quota. Drafts, missing reviewers, stale PRs and authors are calculated from sampled older PRs (up to 50 per repo); total PR and issue counts are always exact. Changes compare the last scan saved in this browser. Charts require a connection (ECharts via CDN). SQLite: every scan is recorded in an in-memory database (tables <code class="inline">scans</code>, <code class="inline">repos</code>, <code class="inline">authors</code>, <code class="inline">labels</code>); use <code class="inline">Choose folder</code> for automatic saving after each scan (Chrome/Edge), or <code class="inline">Save DB</code> to download the file to the same folder as this tool, and <code class="inline">Load DB</code> to accumulate history. If this preview blocks external calls, download the file and open it in the browser.
   </footer>
 </div>
 
@@ -361,25 +361,25 @@
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function headers(extra){ const h=Object.assign({'Accept':'application/vnd.github+json'},extra||{}); const t=$('token').value.trim(); if(t) h['Authorization']='Bearer '+t; return h; }
   function daysBetween(iso){ if(!iso) return null; return Math.floor((Date.now()-Date.parse(iso))/86400000); }
-  function timeAgo(iso){ if(!iso) return '—'; const s=Math.floor((Date.now()-Date.parse(iso))/1000); for(const [lab,sec] of [['a',31536000],['m',2592000],['g',86400],['h',3600],['min',60]]){ const v=Math.floor(s/sec); if(v>=1) return v+' '+lab+' fa'; } return 'ora'; }
+  function timeAgo(iso){ if(!iso) return '—'; const s=Math.floor((Date.now()-Date.parse(iso))/1000); for(const [lab,sec] of [['y',31536000],['mo',2592000],['d',86400],['h',3600],['m',60]]){ const v=Math.floor(s/sec); if(v>=1) return v+' '+lab+' ago'; } return 'now'; }
   function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
-  function updateRate(res){ const rem=res.headers.get('x-ratelimit-remaining'), reset=res.headers.get('x-ratelimit-reset'); if(rem===null) return; let t=`${rem} richieste rimaste`; if(reset){ const d=new Date(parseInt(reset,10)*1000); t+=` · reset ${d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}`; } rateBadge.textContent=t; rateBadge.classList.remove('hidden'); rateBadge._remaining=parseInt(rem,10); }
-  function rateLimitMsg(res){ const reset=res.headers.get('x-ratelimit-reset'); let w=''; if(reset){ const d=new Date(parseInt(reset,10)*1000); w=` Riprova dopo le ${d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}.`; } return 'Limite di richieste GitHub raggiunto.'+w+' Aggiungi un personal access token per salire a 5.000/ora.'; }
+  function updateRate(res){ const rem=res.headers.get('x-ratelimit-remaining'), reset=res.headers.get('x-ratelimit-reset'); if(rem===null) return; let t=`${rem} requests remaining`; if(reset){ const d=new Date(parseInt(reset,10)*1000); t+=` · reset ${d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}`; } rateBadge.textContent=t; rateBadge.classList.remove('hidden'); rateBadge._remaining=parseInt(rem,10); }
+  function rateLimitMsg(res){ const reset=res.headers.get('x-ratelimit-reset'); let w=''; if(reset){ const d=new Date(parseInt(reset,10)*1000); w=` Try again after ${d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}.`; } return 'GitHub rate limit reached.'+w+' Add a personal access token to increase to 5,000/hour.'; }
 
   async function ghFetch(url,opts,tries){
     tries=tries||3;
     for(let i=0;i<tries;i++){
-      if(controller && controller.signal.aborted) throw new DOMException('Annullato','AbortError');
+      if(controller && controller.signal.aborted) throw new DOMException('Cancelled','AbortError');
       let res;
       try{ res=await fetch(url,Object.assign({signal:controller?controller.signal:undefined},opts)); }
-      catch(e){ if(e.name==='AbortError') throw e; if(i===tries-1) throw new Error('Errore di rete durante la chiamata a GitHub.'); await sleep(Math.pow(2,i)*600); continue; }
+      catch(e){ if(e.name==='AbortError') throw e; if(i===tries-1) throw new Error('Network error while calling GitHub.'); await sleep(Math.pow(2,i)*600); continue; }
       updateRate(res);
       if(res.status===403||res.status===429){
         const rem=res.headers.get('x-ratelimit-remaining');
         if(rem==='0') throw new Error(rateLimitMsg(res));
         const ra=parseInt(res.headers.get('retry-after')||'0',10);
         if(i<tries-1){ await sleep((ra||Math.pow(2,i))*1000); continue; }
-        throw new Error('Limite secondario di GitHub raggiunto, riprova tra poco.');
+        throw new Error('GitHub secondary rate limit reached, please try again shortly.');
       }
       return res;
     }
@@ -542,11 +542,11 @@
       await idbSet('dirHandle',dbDirHandle);
       bindAutoSave();
       const ok=await saveDBToFolder();
-      setStatus(ok?`Database salvato automaticamente in "${dbDirHandle.name}".`:'Cartella selezionata — il database verrà salvato alla prossima scansione.', ok?'':'');
+      setStatus(ok?`Database saved automatically to "${dbDirHandle.name}".`:'Folder selected — the database will be saved on the next scan.', ok?'':'');
     }catch(e){}
   }
   function bindAutoSave(){
-    $('pickFolder').textContent=(dbDirHandle?'Cambia cartella':'Scegli cartella');
+    $('pickFolder').textContent=(dbDirHandle?'Change folder':'Choose folder');
     if(dbDirHandle) $('pickFolder').classList.add('bound');
     else $('pickFolder').classList.remove('bound');
   }
@@ -571,8 +571,8 @@
         $('dbPanel').style.display='block';
         renderDBStats();
         renderHistoryCharts();
-        setStatus('Database SQLite caricato ('+file.name+').', '');
-      }catch(e){ setStatus('Impossibile caricare il database: '+(e.message||'file non valido'),'error'); }
+        setStatus('SQLite database loaded ('+file.name+').', '');
+      }catch(e){ setStatus('Unable to load database: '+(e.message||'invalid file'),'error'); }
     };
     reader.readAsArrayBuffer(file);
   }
@@ -595,8 +595,8 @@
       $('dbLatestPRs').textContent=latest!=null?latest[0]:'—';
       $('dbAvgPRs').textContent=avg!=null?avg:'—';
       $('dbDelta').textContent=delta;
-      $('dbInfo').textContent=(n?('Ultima scansione: '+new Date(latest?latest[2]:null).toLocaleString('it-IT')+' · '):'')+
-        'DB in memoria — usa "Salva DB" per esportarlo'+(dbDirHandle?' · autosalvataggio in "'+dbDirHandle.name+'" attivo.':' in una cartella.');
+      $('dbInfo').textContent=(n?('Last scan: '+new Date(latest?latest[2]:null).toLocaleString('en-US')+' · '):'')+
+        'In-memory DB — use "Save DB" to export'+(dbDirHandle?' · auto-save in "'+dbDirHandle.name+'" active.':' to a folder.');
     }catch(e){}
   }
 
@@ -611,11 +611,11 @@
     let cursor=null,out=[],total=null;
     while(true){
       const res=await ghFetch('https://api.github.com/graphql',{method:'POST',headers:headers({'Content-Type':'application/json'}),body:JSON.stringify({query,variables:{login,cursor}})});
-      if(res.status===401) throw new Error('Token non valido (401). Controlla il personal access token.');
+      if(res.status===401) throw new Error('Invalid token (401). Check your personal access token.');
       const json=await res.json();
       if(json.errors&&json.errors.length) throw new Error('GraphQL: '+json.errors[0].message);
       const owner=json.data&&json.data.repositoryOwner;
-      if(!owner) throw new Error(`Account "${login}" non trovato.`);
+      if(!owner) throw new Error(`Account "${login}" not found.`);
       const conn=owner.repositories; total=conn.totalCount;
       conn.nodes.forEach(n=>{
         const repoOwner=n.owner?n.owner.login:login;
@@ -634,7 +634,7 @@
         }
         out.push(r);
       });
-      setStatus(`Recupero via GraphQL (${login})… ${out.length}/${total}`);
+      setStatus(`Fetching via GraphQL (${login})… ${out.length}/${total}`);
       progressBar.style.width=Math.round(out.length/Math.max(total,1)*100)+'%';
       if(!conn.pageInfo.hasNextPage) break;
       cursor=conn.pageInfo.endCursor;
@@ -646,12 +646,12 @@
     async function page(kind,p){ return getJSON(`https://api.github.com/${kind}/${encodeURIComponent(login)}/repos?per_page=100&page=${p}&sort=full_name&type=owner`); }
     let kind='users', first=await page('users',1);
     if(!first.ok&&first.status===404){ kind='orgs'; first=await page('orgs',1); }
-    if(!first.ok&&first.status===404) throw new Error(`Account "${login}" non trovato.`);
-    if(!first.ok) throw new Error(`Errore GitHub (${first.status}) nel recupero dei repository di ${login}.`);
+    if(!first.ok&&first.status===404) throw new Error(`Account "${login}" not found.`);
+    if(!first.ok) throw new Error(`GitHub error (${first.status}) while fetching repositories for ${login}.`);
     let all=first.data.slice(), p=2;
     while(all.length%100===0 && all.length>0 && p<=MAX_PAGES){
       const res=await page(kind,p); if(!res.ok||!res.data.length) break;
-      all=all.concat(res.data); p++; setStatus(`Recupero repository (${login})… ${all.length}`);
+      all=all.concat(res.data); p++; setStatus(`Fetching repositories (${login})… ${all.length}`);
     }
     return all.map(r=>({owner:login,name:r.name,fullName:r.full_name,url:r.html_url,stars:r.stargazers_count||0,
       language:r.language,fork:r.fork,archived:r.archived,private:r.private,updated:timeAgo(r.updated_at),
@@ -672,7 +672,7 @@
         try{ r.openPRs=await countOpenPRsREST(r.fullName); }
         catch(e){ if(e.name==='AbortError') return; r.openPRs=null; }
         done++; progressBar.style.width=Math.round(done/total*100)+'%';
-        setStatus(`Conteggio PR aperte… ${done}/${total}`);
+        setStatus(`Counting open PRs… ${done}/${total}`);
         if(done%5===0||done===total){ render(); updateSummary(); }
       }
     }
@@ -712,7 +712,7 @@
     const tb=$('tbody'); const totalRows=rows.length;
     if(!totalRows){
       const isFiltered = $('onlyWithPRs').checked || $('filter').value.trim() || $('fLang').value || $('fOwner').value || $('fMin').value;
-      tb.innerHTML=`<tr><td colspan="9" class="empty">Nessun repository corrisponde ai filtri.${isFiltered ? '<br><button class="btn secondary small" id="clearFiltersBtn" style="margin-top: 12px;">Azzera filtri</button>' : ''}</td></tr>`;
+      tb.innerHTML=`<tr><td colspan="9" class="empty">No repositories match the filters.${isFiltered ? '<br><button class="btn secondary small" id="clearFiltersBtn" style="margin-top: 12px;">Clear filters</button>' : ''}</td></tr>`;
       $('showAllWrap').style.display='none';
       return;
     }
@@ -723,9 +723,9 @@
       const prTxt=r.openPRs==null?'⟳':r.openPRs;
       let deltaB='';
       if(prev && r.openPRs!=null && (r.fullName in prev)){ const d=r.openPRs-prev[r.fullName]; if(d!==0) deltaB=`<span class="delta-badge ${d>0?'up':'down'}">${d>0?'+':''}${d}</span>`; }
-      else if(prev && r.openPRs!=null){ deltaB='<span class="delta-badge down" title="nuovo repo">nuovo</span>'; }
+      else if(prev && r.openPRs!=null){ deltaB='<span class="delta-badge down" title="new repo">new</span>'; }
       const prCell=r.openPRs==null
-        ? `<span class="pill fail" data-retry="${esc(r.fullName)}" title="Conteggio fallito — clicca per riprovare">${prTxt}</span>`
+        ? `<span class="pill fail" data-retry="${esc(r.fullName)}" title="Count failed — click to retry">${prTxt}</span>`
         : `<a href="https://github.com/${esc(r.fullName)}/pulls" target="_blank" rel="noopener" style="text-decoration:none;"><span class="pill ${prClass}">${prTxt}</span></a>${deltaB}`;
       const draft=r.draftPRs==null?'—':r.draftPRs;
       const norev=r.noReviewer==null?'—':(r.noReviewer>0?`<span class="stale">${r.noReviewer}</span>`:'0');
@@ -736,14 +736,14 @@
       const langDot=r.language?`<span class="lang-dot"></span>${esc(r.language)}`:'';
       const ownerTag=mo?`<span>${esc(r.owner)}</span>`:'';
       return `<tr data-glean-id="repo-row-${esc(r.fullName)}">
-        <td class="repo-name"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(mo?r.fullName:r.name)}</a>${r.private?'<span class="pill zero" style="margin-left:6px;font-size:10px;">privato</span>':''}<div class="repo-meta">${langDot}${ownerTag}${r.fork?'<span>fork</span>':''}${r.archived?'<span>archiviato</span>':''}</div></td>
+        <td class="repo-name"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(mo?r.fullName:r.name)}</a>${r.private?'<span class="pill zero" style="margin-left:6px;font-size:10px;">private</span>':''}<div class="repo-meta">${langDot}${ownerTag}${r.fork?'<span>fork</span>':''}${r.archived?'<span>archived</span>':''}</div></td>
         <td class="num">${prCell}</td>
         <td class="num">${draft}</td>
         <td class="num">${norev}</td>
         <td class="num">${stale}</td>
         <td class="num" title="${esc(r.oldestPRDate||'')}">${oldest}</td>
         <td class="num">${issues}</td>
-        <td class="num">${r.stars.toLocaleString('it-IT')}</td>
+        <td class="num">${r.stars.toLocaleString('en-US')}</td>
         <td class="num" title="${esc(r.updatedRaw||'')}">${esc(r.updated)}</td>
       </tr>`;
     }).join('');
@@ -803,7 +803,7 @@
       const axis={ axisLabel:{color:muted,fontSize:10}, axisLine:{lineStyle:{color:muted}} };
       const now=new Date();
       const days=[];
-      for(let i=29;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i); days.push({key:dayKey(d),label:d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})}); }
+      for(let i=29;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i); days.push({key:dayKey(d),label:d.toLocaleDateString('en-US',{day:'2-digit',month:'2-digit'})}); }
       const r2=db.exec('SELECT timestamp, total_prs FROM scans ORDER BY id ASC');
       if(!r2||!r2.length||!r2[0].values.length){ $('historyChartsPanel').classList.remove('on'); return; }
       const scans=r2[0].values.map(v=>({ts:v[0],total:v[1]}));
@@ -855,14 +855,14 @@
     $('statIssues').textContent=iss==null?'—':iss;
     $('summary').classList.add('on');
   }
-  function updateMeta(){ if(lastTs){ $('resultsMeta').textContent=`Ultimo aggiornamento: ${new Date(lastTs).toLocaleString('it-IT')}`; } }
+  function updateMeta(){ if(lastTs){ $('resultsMeta').textContent=`Latest update: ${new Date(lastTs).toLocaleString('en-US')}`; } }
   function populateFilters(){
     const langs=[...new Set(repos.map(r=>r.language||'—'))].sort();
     const cur=$('fLang').value;
-    $('fLang').innerHTML='<option value="">Tutti i linguaggi</option>'+langs.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
+    $('fLang').innerHTML='<option value="">All languages</option>'+langs.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
     if(langs.includes(cur)) $('fLang').value=cur;
     const owners=[...new Set(repos.map(r=>r.owner))];
-    if(owners.length>1){ const co=$('fOwner').value; $('fOwner').style.display=''; $('fOwner').innerHTML='<option value="">Tutti gli owner</option>'+owners.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join(''); if(owners.includes(co)) $('fOwner').value=co; }
+    if(owners.length>1){ const co=$('fOwner').value; $('fOwner').style.display=''; $('fOwner').innerHTML='<option value="">All owners</option>'+owners.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join(''); if(owners.includes(co)) $('fOwner').value=co; }
     else $('fOwner').style.display='none';
   }
 
@@ -884,10 +884,10 @@
     const removed=[...prevNames].filter(n=>!nowNames.has(n)).length;
     const cls=diff>0?'up':diff<0?'down':'flat';
     $('deltaRow').innerHTML=
-      `<span class="delta-chip">Totale PR aperte: <span class="n ${cls}">${diff>0?'+':''}${diff}</span> (ora ${nowTotal})</span>`+
-      `<span class="delta-chip">Repo aggiunti: <span class="n">${added}</span></span>`+
-      `<span class="delta-chip">Repo rimossi: <span class="n">${removed}</span></span>`+
-      `<span class="delta-chip flat">rispetto al ${new Date(prev.ts).toLocaleString('it-IT')}</span>`;
+      `<span class="delta-chip">Total open PRs: <span class="n ${cls}">${diff>0?'+':''}${diff}</span> (now ${nowTotal})</span>`+
+      `<span class="delta-chip">Repos added: <span class="n">${added}</span></span>`+
+      `<span class="delta-chip">Repos removed: <span class="n">${removed}</span></span>`+
+      `<span class="delta-chip flat">vs ${new Date(prev.ts).toLocaleString('en-US')}</span>`;
     const changes=[];
     repos.forEach(r=>{ if(r.openPRs!=null && (r.fullName in prev.map)){ const d=r.openPRs-prev.map[r.fullName]; if(d!==0) changes.push([r.fullName,d]); } });
     changes.sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
@@ -898,8 +898,8 @@
   async function run(){
     if(running) return;
     const users=getUsernames();
-    if(!users.length){ setStatus('Inserisci almeno uno username GitHub.','error'); return; }
-    for(const u of users){ if(!/^[A-Za-z0-9-]{1,39}$/.test(u)){ setStatus(`Username non valido: "${u}". Ammessi lettere, numeri e trattini.`,'error'); return; } }
+    if(!users.length){ setStatus('Enter at least one GitHub username.','error'); return; }
+    for(const u of users){ if(!/^[A-Za-z0-9-]{1,39}$/.test(u)){ setStatus(`Invalid username: "${u}". Only letters, numbers, and hyphens are allowed.`,'error'); return; } }
     const hasToken=!!$('token').value.trim();
     const ext=$('extended').checked && hasToken;
     usedMethod=hasToken?'graphql':'rest';
@@ -908,53 +908,53 @@
     savePrefs(); syncHash();
     repos=[]; authorCounts={}; labelCounts={}; showAll=false; lastDelta=prevSnap;
     $('summary').classList.remove('on'); $('aggPanel').classList.remove('on'); $('chartsPanel').classList.remove('on'); $('deltaPanel').classList.remove('on');
-    methodBadge.textContent=hasToken?(ext?'metodo: GraphQL + metriche estese':'metodo: GraphQL'):'metodo: REST'; methodBadge.classList.remove('hidden');
-    if($('extended').checked && !hasToken) setStatus('Metriche estese ignorate: richiedono un token. Uso REST per i soli conteggi PR.','warn');
+    methodBadge.textContent=hasToken?(ext?'method: GraphQL + extended metrics':'method: GraphQL'):'method: REST'; methodBadge.classList.remove('hidden');
+    if($('extended').checked && !hasToken) setStatus('Extended metrics ignored: they require a token. Using REST for PR counts only.','warn');
     controller=new AbortController(); setRunning(true); progressBar.style.width='0%';
     $('resultsPanel').style.display='block'; showSkeleton(6);
     try{
       if(!hasToken && rateBadge._remaining!=null && rateBadge._remaining<5){ setStatus(rateLimitMsg({headers:{get:()=>null}}),'error'); setRunning(false); return; }
       for(const u of users){
-        if(controller.signal.aborted) throw new DOMException('Annullato','AbortError');
+        if(controller.signal.aborted) throw new DOMException('Cancelled','AbortError');
         let part = hasToken ? await scanGraphQL(u,ext) : await listReposREST(u);
         repos=repos.concat(part);
       }
       if(!$('includeForks').checked) repos=repos.filter(r=>!r.fork);
       if(!$('includeArchived').checked) repos=repos.filter(r=>!r.archived);
-      if(!repos.length){ setStatus('Nessun repository trovato (o tutti filtrati).',''); $('tbody').innerHTML='<tr><td colspan="9" class="empty">Nessun repository.</td></tr>'; setRunning(false); return; }
+      if(!repos.length){ setStatus('No repositories found (or all filtered out).',''); $('tbody').innerHTML='<tr><td colspan="9" class="empty">No repositories.</td></tr>'; setRunning(false); return; }
       populateFilters(); render(); updateSummary(); renderAgg();
       if(!hasToken){
-        if(rateBadge._remaining!=null && rateBadge._remaining<repos.length) setStatus(`Attenzione: ${repos.length} repo da controllare ma solo ${rateBadge._remaining} richieste rimaste. Alcuni conteggi potrebbero fallire — aggiungi un token.`,'warn');
+        if(rateBadge._remaining!=null && rateBadge._remaining<repos.length) setStatus(`Warning: ${repos.length} repos to check but only ${rateBadge._remaining} requests remaining. Some counts may fail — add a token.`,'warn');
         await countREST(repos);
       }
       render(); updateSummary(); renderAgg(); renderCharts();
       renderHistoryCharts();
       computeDelta(prevSnap); saveSnapshot(); saveToDB();
-      if(dbReady) saveDBToFolder().then(ok=>{ renderHistoryCharts(); if(!ok&&window.showDirectoryPicker&&dbDirHandle){ setStatus('Autosalvataggio non riuscito: autorizzazione alla cartella scaduta. Dacci accesso o riprova.','warn'); } });
+      if(dbReady) saveDBToFolder().then(ok=>{ renderHistoryCharts(); if(!ok&&window.showDirectoryPicker&&dbDirHandle){ setStatus('Auto-save failed: folder permission expired. Grant access or try again.','warn'); } });
       lastTs=Date.now(); updateMeta(); saveCache();
       const total=repos.reduce((s,r)=>s+(r.openPRs||0),0);
       const fails=repos.filter(r=>r.openPRs==null).length;
       const foundPrivate=repos.some(r=>r.private);
-      let doneMsg=`Completato: ${repos.length} repository, ${total} PR aperte in totale.`+(fails?` ${fails} conteggi falliti (usa "Riprova falliti").`:'');
+      let doneMsg=`Completed: ${repos.length} repositories, ${total} open PRs total.`+(fails?` ${fails} counts failed (use "Retry failed").`:'');
       if(hasToken && tokenLogin && !foundPrivate){
-        if(!getUsernames().includes(tokenLogin)) doneMsg+=` Nessuna repo privata visibile: il token di "${tokenLogin}" non può vedere le repo private di account diversi. Usa "Usa il mio account".`;
-        else if(!tokenScopes.includes('repo') && !tokenFine) doneMsg+=' Il token non ha lo scope "repo" (o è un PAT fine-grained senza i repository selezionati): i repository privati non sono accessibili.';
-        else doneMsg+=' Nessun repository privato trovato per questo account.';
+        if(!getUsernames().includes(tokenLogin)) doneMsg+=` No private repos visible: the token of "${tokenLogin}" cannot see private repos of other accounts. Use "Use my account".`;
+        else if(!tokenScopes.includes('repo') && !tokenFine) doneMsg+=' The token does not have the "repo" scope (or is a fine-grained PAT without the selected repositories): private repositories are not accessible.';
+        else doneMsg+=' No private repositories found for this account.';
         setStatus(doneMsg,'warn');
       } else if(!hasToken){
-        setStatus(doneMsg+ (doneMsg.indexOf('Limit')>=0?'':' Per vedere i repository privati serve un personal access token.'), 'warn');
+        setStatus(doneMsg+ (doneMsg.indexOf('Limit')>=0?'':' To see private repositories you need a personal access token.'), 'warn');
       } else setStatus(doneMsg, fails?'warn':'');
     }catch(e){
-      if(e.name==='AbortError') setStatus('Scansione annullata.','');
-      else setStatus(e.message||'Errore imprevisto.','error');
+      if(e.name==='AbortError') setStatus('Scan cancelled.','');
+      else setStatus(e.message||'Unexpected error.','error');
     }finally{ setRunning(false); render(); }
   }
 
   async function retryFailed(){
     if(running) return; const failed=repos.filter(r=>r.openPRs==null); if(!failed.length) return;
-    controller=new AbortController(); setRunning(true); setStatus(`Riprovo ${failed.length} conteggi…`);
-    try{ await countREST(failed); render(); updateSummary(); renderCharts(); renderHistoryCharts(); lastTs=Date.now(); updateMeta(); saveCache(); saveSnapshot(); setStatus('Riprova completata.',''); }
-    catch(e){ setStatus(e.message||'Errore.','error'); }
+    controller=new AbortController(); setRunning(true); setStatus(`Retrying ${failed.length} counts…`);
+    try{ await countREST(failed); render(); updateSummary(); renderCharts(); renderHistoryCharts(); lastTs=Date.now(); updateMeta(); saveCache(); saveSnapshot(); setStatus('Retry completed.',''); }
+    catch(e){ setStatus(e.message||'Error.','error'); }
     finally{ setRunning(false); }
   }
 
@@ -987,7 +987,7 @@
     downloadBlob(JSON.stringify(payload,null,2),'application/json',`github_open_prs_${getUsernames().join('_')||'export'}.json`);
   }
   function downloadBlob(content,type,name){ const blob=new Blob([content],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href); }
-  function copyLink(){ syncHash(); const url=location.href; if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>setStatus('Link copiato negli appunti.',''),()=>setStatus('Impossibile copiare il link.','warn')); } else setStatus('Copia manuale: '+url,''); }
+  function copyLink(){ syncHash(); const url=location.href; if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>setStatus('Link copied to clipboard.',''),()=>setStatus('Unable to copy link.','warn')); } else setStatus('Copy manually: '+url,''); }
 
   function syncHash(){
     const p=new URLSearchParams();
@@ -1028,7 +1028,7 @@
       if(pendingLang){ $('fLang').value=pendingLang; } if(pendingOwn){ $('fOwner').value=pendingOwn; }
       render(); updateSummary(); renderAgg(); renderCharts(); renderHistoryCharts(); computeDelta(lastDelta); updateMeta();
       const total=repos.reduce((s,r)=>s+(r.openPRs||0),0);
-      setStatus(`Dati in cache (${repos.length} repo, ${total} PR aperte). Premi "Aggiorna" per ricaricare.`,'');
+      setStatus(`Cached data (${repos.length} repos, ${total} open PRs). Press "Refresh" to reload.`,'');
       return true;
     }catch(e){ return false; }
   }
