@@ -4,13 +4,21 @@ Facts, conventions, and invariants that opencode agents should know and respect 
 
 ## Project Overview
 
-**GitHub Open PR Checker** is a **self-contained, single-file, browser-based web tool** (UI in English). Open `github_pr_checker.html` in a browser — there is no server, no build step, and no package manager.
+**GitHub Open PR Checker** is a **multi-file, browser-based web tool** (UI in English). Open `github_pr_checker.html` in a browser — there is no server, no build step, and no package manager. CSS is in `css/styles.css` and JS is split across 7 modules in `js/*.js` using a shared `APP` namespace.
 
 It scans one or more GitHub users/orgs and shows, per repository, the open pull requests with health metrics (draft count, "no reviewer", stale PRs >30d, oldest PR age, open issues, stars, last update), charts (ECharts), aggregations (top authors, frequent labels), delta vs. the previous scan, and CSV/JSON export. Data persists in an in-browser SQLite DB via `sql.js` (WASM), auto-saved to a user-selected folder.
 
 ## Repository Layout
 
-- `github_pr_checker.html` — the **entire application** (HTML + CSS + ES6 JS in one IIFE). ~1000 lines. Single source of truth.
+- `github_pr_checker.html` — HTML template, loads external CSS and JS.
+- `css/styles.css` — all application styles.
+- `js/config.js` — constants (render cap, stale days, CDN URLs, keys).
+- `js/utils.js` — escape helper, DOM shortcuts, hash/sync, time formatting.
+- `js/api.js` — GitHub REST + GraphQL API functions, token diagnostics.
+- `js/db.js` — SQLite database (sql.js), IndexedDB persistence, folder auto-save.
+- `js/charts.js` — ECharts chart rendering (bar, distribution, history trend).
+- `js/ui.js` — table rendering, filters, event handlers, CSV/JSON export.
+- `js/main.js` — initialization, `run()`, `retryFailed()`.
 - `.gitignore` — ignores `*.sqlite`, `*.sqlite-journal`, `*.sqlite-wal`, `*.sqlite-shm`.
 - `VERSION` — may be created by the first release; mirrors the latest Git tag (what the Web UI displays).
 - `CheckGitHubRepo.code-workspace` — VS Code workspace file (untracked/optional).
