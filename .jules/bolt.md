@@ -5,3 +5,7 @@
 ## 2024-11-20 - Set Allocation in Render Loops
 **Learning:** Checking if an array contains diverse values using `new Set(arr.map(x => x.prop)).size > 1` creates a new mapped array AND a new Set on every execution. In frequent render loops, this causes unnecessary garbage collection pressure and takes O(n) time and O(n) memory.
 **Action:** When determining if a collection has multiple distinct values for a specific property, use an early-return approach like `.some(x => x.prop !== arr[0].prop)`. This drops memory overhead to O(1) and time complexity to best-case O(1) (returns true on the first mismatch).
+
+## 2024-11-20 - Missing IndexedDB/SQLite Indexes on Frequently Queried Fields
+**Learning:** In the SQLite history chart queries (`SELECT s.timestamp, r.open_prs FROM repos r JOIN scans s ON r.scan_id=s.id WHERE r.full_name=? ORDER BY s.id ASC`), searching by `full_name` without an index causes O(n) full table scans over potentially thousands of repositories. Similarly for `timestamp` on the `scans` table.
+**Action:** When working with client-side databases (like sql.js), always verify that `JOIN` conditions and frequently used `WHERE` clauses (like `full_name` or `timestamp`) are supported by explicit `CREATE INDEX` statements to reduce query time from O(n) to O(log n).
