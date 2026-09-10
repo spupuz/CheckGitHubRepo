@@ -51,7 +51,7 @@ APP.ui = (function(){
       if(prev && r.openPRs!=null && (r.fullName in prev)){ const d=r.openPRs-prev[r.fullName]; if(d!==0) deltaB=`<span class="delta-badge ${d>0?'up':'down'}">${d>0?'+':''}${d}</span>`; }
       else if(prev && r.openPRs!=null){ deltaB='<span class="delta-badge down" title="new repo">new</span>'; }
       const prCell=r.openPRs==null
-        ? `<span class="pill fail" data-retry="${esc(r.fullName)}" title="Count failed — click to retry">${prTxt}</span>`
+        ? `<span class="pill fail" role="button" tabindex="0" aria-label="Retry counting open PRs" data-retry="${esc(r.fullName)}" title="Count failed — click to retry">${prTxt}</span>`
         : `<a href="https://github.com/${esc(r.fullName)}/pulls" target="_blank" rel="noopener" style="text-decoration:none;"><span class="pill ${prClass}">${prTxt}</span></a>${deltaB}`;
       const draft=r.draftPRs==null?'—':r.draftPRs;
       const norev=r.noReviewer==null?'—':(r.noReviewer>0?`<span class="stale">${r.noReviewer}</span>`:'0');
@@ -221,7 +221,7 @@ APP.ui = (function(){
   }
 
   function bindEvents(handlers){
-    $('tbody').addEventListener('click', e=>{
+    const handleRetry = e=>{
       if(e.target.id === 'clearFiltersBtn') {
         $('filter').value = '';
         $('fLang').value = '';
@@ -240,7 +240,9 @@ APP.ui = (function(){
       if(!r) return;
       APP.api.setController(new AbortController());
       (async()=>{ el.textContent='…'; try{ r.openPRs=await APP.api.countOpenPRsREST(fn); }catch(_){ } render(); updateSummary(); APP.charts.renderCharts(); APP.charts.renderHistoryCharts(); saveCache(); })();
-    });
+    };
+    $('tbody').addEventListener('click', handleRetry);
+    $('tbody').addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handleRetry(e); } });
     $('run').addEventListener('click', handlers.run);
     $('refreshBtn').addEventListener('click', handlers.run);
     $('cancel').addEventListener('click', ()=>{ if(APP.api.getController()) APP.api.getController().abort(); });
