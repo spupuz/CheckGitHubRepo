@@ -12,7 +12,7 @@ APP.ui = (function(){
   const statusEl=$('status');
   function setStatus(m,cls){ statusEl.textContent=m||''; statusEl.className=cls||''; }
   function showSkeleton(n){ const tb=$('tbody'); let h=''; for(let i=0;i<n;i++) h+=`<tr><td colspan="9"><div class="skel" style="width:${60+Math.random()*35}%"></div></td></tr>`; tb.innerHTML=h; }
-  function setRunning(on){ const state=APP.state; state.running=on; $('run').disabled=on; $('refreshBtn').disabled=on; $('cancel').style.display=on?'inline-block':'none'; $('progressWrap').classList.toggle('on',on); }
+  function setRunning(on){ const state=APP.state; state.running=on; const runBtn=$('run'); runBtn.disabled=on; if(runBtn.dataset.origText===undefined) runBtn.dataset.origText=runBtn.textContent; runBtn.textContent=on?'Checking...':runBtn.dataset.origText; $('refreshBtn').disabled=on; $('cancel').style.display=on?'inline-block':'none'; $('progressWrap').classList.toggle('on',on); }
 
   function applyFilters(list){
     const onlyWithPRs=$('onlyWithPRs').checked;
@@ -133,7 +133,7 @@ APP.ui = (function(){
     const payload={ generatedAt:new Date().toISOString(), accounts:getUsernames(), method:APP.state.usedMethod, totalOpenPRs:repos.reduce((s,r)=>s+(r.openPRs||0),0), repositories:applyFilters(repos) };
     downloadBlob(JSON.stringify(payload,null,2),'application/json',`github_open_prs_${getUsernames().join('_')||'export'}.json`);
   }
-  function copyLink(){ syncHash(); const url=location.href; if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>setStatus('Link copied to clipboard.',''),()=>setStatus('Unable to copy link.','warn')); } else setStatus('Copy manually: '+url,''); }
+  function copyLink(){ syncHash(); const url=location.href; if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>{setStatus('Link copied to clipboard.','');const btn=$('copyLink');if(btn){const orig=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=orig,2000);}},()=>setStatus('Unable to copy link.','warn')); } else setStatus('Copy manually: '+url,''); }
 
   function savePrefs(){
     saveToken();
