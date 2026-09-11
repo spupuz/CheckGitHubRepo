@@ -121,10 +121,10 @@
     </div>
     <div class="filter-bar">
       <label style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--artifact-text-muted);"><input type="checkbox" id="onlyWithPRs"> Only with open PRs</label>
-      <input type="text" id="filter" class="filter-input" placeholder="Filter by name…" autocomplete="off">
+      <input type="text" id="filter" class="filter-input" placeholder="Filter by name…" aria-label="Filter repositories by name" autocomplete="off">
       <select id="fLang" aria-label="Filter by language"><option value="">All languages</option></select>
       <select id="fOwner" aria-label="Filter by owner" style="display:none;"><option value="">All owners</option></select>
-      <input type="number" id="fMin" class="num-input" min="0" placeholder="Min PR" aria-label="Min PRs">
+      <input type="number" id="fMin" class="num-input" min="0" placeholder="Min PR" aria-label="Minimum open pull requests">
     </div>
     <p class="results-meta" id="resultsMeta"></p>
     <div id="dbPanel" style="display:none;margin-bottom:18px;padding:14px 16px;background:var(--artifact-surface-alt);border:1px solid var(--artifact-border);border-radius:12px;">
