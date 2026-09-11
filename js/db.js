@@ -60,6 +60,8 @@ APP.db = (function(){
         );
         CREATE INDEX IF NOT EXISTS idx_repos_scan ON repos(scan_id);
         CREATE INDEX IF NOT EXISTS idx_authors_scan ON authors(scan_id);
+        CREATE INDEX IF NOT EXISTS idx_repos_full_name ON repos(full_name);
+        CREATE INDEX IF NOT EXISTS idx_scans_timestamp ON scans(timestamp);
       `);
       dbReady=true;
       if(dbReadyResolve) dbReadyResolve();
