@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com https://cdnjs.cloudflare.com; img-src 'self' data:; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com https://cdnjs.cloudflare.com; img-src 'self' data:; object-src 'none'">
 <title>GitHub Open PR Checker</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" integrity="sha384-pPi0zxBAoDu6+JXW/C68UZLvBUUtU+7zonhif43rqj7pxsGyqyqzcian2Rj37Rss" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js" integrity="sha384-KsfptB549CXfbfsdxZmPo2PlmgCyJ+RNqHTQE1Gj45t3p4DaA1QbZYVyqlni4pOO" crossorigin="anonymous"></script>
@@ -181,19 +181,6 @@
 <script src="js/charts.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
-<script>
-  (function(){ var vt=document.getElementById('versionTag'); var fallback=window.APP.config.VERSION;
-    if(location.protocol==='file:'){ vt.textContent=fallback; return; }
-    fetch('VERSION').then(function(r){ return r.ok?r.text():''; }).then(function(v){ vt.textContent=((v||'').trim())||fallback; }).catch(function(){ vt.textContent=fallback; });
-  })();
-</script>
-<script>
-  window.GleanBridge && window.GleanBridge.postMessage({ actionId:'export-pdf', type:'glean-add-menu', metadata:{ label:'Export as PDF', icon:'export' }});
-  window.GleanBridge && window.GleanBridge.onMessage('action', function(data){ if(data.actionId==='export-pdf') window.print(); });
-  function prepareChartsForPrint(){ try{ document.querySelectorAll('[_echarts_instance_]').forEach(function(el){ var c=echarts.getInstanceByDom(el); if(!c) return; var img=new Image(); img.src=c.getDataURL({type:'png',pixelRatio:2}); img.className='print-chart-img'; img.style.cssText='width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0;z-index:10;'; el.dataset.prevPosition=el.style.position; el.style.position='relative'; el.appendChild(img); }); }catch(e){} }
-  function cleanUpAfterPrint(){ document.querySelectorAll('[_echarts_instance_]').forEach(function(el){ var img=el.querySelector('.print-chart-img'); if(!img) return; img.remove(); el.style.position=el.dataset.prevPosition||''; delete el.dataset.prevPosition; }); }
-  window.addEventListener('beforeprint', prepareChartsForPrint);
-  window.addEventListener('afterprint', cleanUpAfterPrint);
-</script>
+<script src="js/init.js"></script>
 </body>
 </html>
