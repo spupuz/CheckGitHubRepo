@@ -2,11 +2,12 @@ window.APP = window.APP || {};
 APP.ui = (function(){
   const { $, esc, cssVar, daysBetween, timeAgo, getUsernames, signature, syncHash, applyHash, tokenStorage, downloadBlob, multiOwner } = APP.utils;
   const cfg = APP.config;
+  // ⚡ Bolt: Optimize date sorting by using native ISO-8601 lexicographical string comparison instead of Date.parse()
   const SORTERS={
     name:r=>r.name.toLowerCase(), openPRs:r=>r.openPRs==null?-1:r.openPRs,
     draftPRs:r=>r.draftPRs==null?-1:r.draftPRs, noReviewer:r=>r.noReviewer==null?-1:r.noReviewer,
-    stalePRs:r=>r.stalePRs==null?-1:r.stalePRs, oldest:r=>r.oldestPRDate?Date.parse(r.oldestPRDate):Infinity,
-    openIssues:r=>r.openIssues==null?-1:r.openIssues, stars:r=>r.stars, updated:r=>r.updatedRaw?Date.parse(r.updatedRaw):0
+    stalePRs:r=>r.stalePRs==null?-1:r.stalePRs, oldest:r=>r.oldestPRDate||'z',
+    openIssues:r=>r.openIssues==null?-1:r.openIssues, stars:r=>r.stars, updated:r=>r.updatedRaw||''
   };
 
   const statusEl=$('status');
