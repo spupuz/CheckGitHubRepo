@@ -5,8 +5,10 @@ APP.ui = (function(){
   const SORTERS={
     name:r=>r.name.toLowerCase(), openPRs:r=>r.openPRs==null?-1:r.openPRs,
     draftPRs:r=>r.draftPRs==null?-1:r.draftPRs, noReviewer:r=>r.noReviewer==null?-1:r.noReviewer,
-    stalePRs:r=>r.stalePRs==null?-1:r.stalePRs, oldest:r=>r.oldestPRDate?Date.parse(r.oldestPRDate):Infinity,
-    openIssues:r=>r.openIssues==null?-1:r.openIssues, stars:r=>r.stars, updated:r=>r.updatedRaw?Date.parse(r.updatedRaw):0
+    // ⚡ Bolt Optimization: Use lexicographical string comparison for ISO-8601 dates instead of Date.parse() in O(N log N) sorts.
+    // 'z' acts as Infinity for oldest, '' acts as 0 for updated.
+    stalePRs:r=>r.stalePRs==null?-1:r.stalePRs, oldest:r=>r.oldestPRDate||'z',
+    openIssues:r=>r.openIssues==null?-1:r.openIssues, stars:r=>r.stars, updated:r=>r.updatedRaw||''
   };
 
   const statusEl=$('status');

@@ -9,3 +9,7 @@
 ## 2024-11-20 - Missing IndexedDB/SQLite Indexes on Frequently Queried Fields
 **Learning:** In the SQLite history chart queries (`SELECT s.timestamp, r.open_prs FROM repos r JOIN scans s ON r.scan_id=s.id WHERE r.full_name=? ORDER BY s.id ASC`), searching by `full_name` without an index causes O(n) full table scans over potentially thousands of repositories. Similarly for `timestamp` on the `scans` table.
 **Action:** When working with client-side databases (like sql.js), always verify that `JOIN` conditions and frequently used `WHERE` clauses (like `full_name` or `timestamp`) are supported by explicit `CREATE INDEX` statements to reduce query time from O(n) to O(log n).
+
+## 2026-09-13 - Date Sorting Bottleneck
+**Learning:** Calling `Date.parse()` on ISO-8601 strings inside sorting callbacks (which execute O(N log N) times) creates significant CPU overhead in JavaScript. ISO-8601 strings are inherently sortable lexicographically.
+**Action:** When sorting dates represented as ISO-8601 strings, use native lexicographical string comparison rather than parsing dates. Handle missing/null dates via short-circuit evaluations (e.g., `|| 'z'` for Infinity or `|| ''` for 0).
