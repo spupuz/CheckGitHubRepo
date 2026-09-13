@@ -8,3 +8,7 @@
 ## 2024-05-24 - Interactive pseudo-elements and keyboard focus
  **Learning:** In this vanilla JS setup, "fake" buttons like `.pill.fail` (for retrying failed API calls) or styled file inputs (`display: none` inner input) break keyboard accessibility since they aren't native interactive elements or are hidden from the focus tree.
  **Action:** For custom styled inputs like file pickers, never use `display: none`. Instead use absolute positioning with 0 dimensions and opacity, and apply focus styles to the parent wrapper using `:has(input:focus-visible)`. For `<span>` or `<div>` elements acting as buttons, always add `role="button"`, `tabindex="0"`, an appropriate `aria-label`, and ensure the keydown event listener handles both `Enter` and `Space` keys.
+
+## 2024-05-24 - Search Input UX for Filters
+**Learning:** For simple text-based filter inputs, using `<input type="search">` instead of `type="text"` provides built-in browser features like a native clear ("x") button, instantly improving UX without additional JavaScript.
+**Action:** Always prefer `type="search"` over `type="text"` for filter inputs. Ensure you add `aria-label` when a visible `<label>` is missing, and include `input[type=search]` in shared CSS selectors to maintain consistent styling.

@@ -46,7 +46,8 @@ h1 { font-size: clamp(26px, 4vw, 36px); font-weight: 650; margin: 0 0 8px; lette
 .field { display: flex; flex-direction: column; gap: 6px; flex: 1 1 240px; }
 .field label { font-size: 12.5px; font-weight: 600; color: var(--artifact-text-muted); }
 .field .hint { font-size: 11.5px; color: var(--artifact-text-muted); font-weight: 400; }
-input[type=text], input[type=password], input[type=number], select { padding: 11px 13px; border-radius: 10px; border: 1px solid var(--artifact-border); background: var(--artifact-background); color: var(--artifact-text-primary); font-size: 14px; font-family: var(--artifact-sans); outline: none; transition: border-color .15s, box-shadow .15s; }
+input[type=text], input[type=password], input[type=number], input[type=search], select { padding: 11px 13px; border-radius: 10px; border: 1px solid var(--artifact-border); background: var(--artifact-background); color: var(--artifact-text-primary); font-size: 14px; font-family: var(--artifact-sans); outline: none; transition: border-color .15s, box-shadow .15s; }
+input[type=search]::-webkit-search-cancel-button { cursor: pointer; }
 select { cursor: pointer; }
 input:focus, select:focus { border-color: var(--artifact-accent); box-shadow: 0 0 0 3px var(--artifact-accent-soft); }
 .btn { padding: 11px 20px; border-radius: 10px; border: 1px solid transparent; background: var(--artifact-accent); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; transition: filter .15s, opacity .15s; white-space: nowrap; }
