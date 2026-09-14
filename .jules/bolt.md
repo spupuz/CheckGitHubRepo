@@ -16,3 +16,7 @@
 ## 2026-09-12 - Lexicographical Date Sorting Optimization
 **Learning:** When sorting collections by ISO-8601 date strings, using `Date.parse()` in the sort comparator introduces unnecessary O(N log N) overhead (converting strings to timestamps continuously during the sort passes). Since ISO-8601 strings sort perfectly alphabetically (lexicographically), they can be compared directly as strings.
 **Action:** When sorting ISO-8601 strings, use direct string comparison instead of parsing. Handle null/missing dates via short-circuit evaluations (e.g. `|| 'z'` for Infinity or `|| ''` for 0) to maintain O(N log N) time but drastically reduce the constant factor by avoiding timestamp conversion.
+
+## 2026-09-13 - Date Sorting Bottleneck
+**Learning:** Calling `Date.parse()` on ISO-8601 strings inside sorting callbacks (which execute O(N log N) times) creates significant CPU overhead in JavaScript. ISO-8601 strings are inherently sortable lexicographically.
+**Action:** When sorting dates represented as ISO-8601 strings, use native lexicographical string comparison rather than parsing dates. Handle missing/null dates via short-circuit evaluations (e.g., `|| 'z'` for Infinity or `|| ''` for 0).
