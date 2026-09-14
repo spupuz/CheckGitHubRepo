@@ -3,3 +3,4 @@
 *.sqlite-wal
 *.sqlite-shm
 CheckGitHubRepo.code-workspace
+node_modules/
