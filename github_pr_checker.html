@@ -17,6 +17,27 @@
     <p class="sub">Scans all repositories of one or more GitHub accounts and shows, for each, the open pull requests with health metrics, charts, and a comparison against the previous scan. With a token it uses the GraphQL API and includes private repositories.</p>
   </header>
 
+  <div class="db-modal-overlay" id="dbModalOverlay" data-glean-id="db-modal" style="display:none;">
+    <div class="db-modal" role="dialog" aria-modal="true" aria-labelledby="dbModalTitle">
+      <h3 id="dbModalTitle">Save the database in a folder</h3>
+      <p id="dbModalText">Scan history is currently stored only in this browser. Choose a folder (for example, the one containing this file) so the SQLite database is created and kept on disk automatically after each scan.</p>
+      <div class="db-modal-actions">
+        <button class="btn secondary small" id="dbModalBtn" type="button">Choose folder</button>
+        <button class="btn ghost small" id="dbModalLater" type="button">Later</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="dbBanner" data-glean-id="db-banner" style="display:none;border-left:4px solid var(--artifact-accent);">
+    <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;">
+      <div style="flex:1 1 300px;min-width:240px;">
+        <div style="font-weight:650;font-size:14.5px;">Choose a folder to save the database</div>
+        <div style="font-size:13px;color:var(--artifact-text-muted);margin-top:2px;" id="dbBannerText">Scan history is currently stored only in this browser. Choose a folder (for example, the one containing this file) so it is kept on disk automatically.</div>
+      </div>
+      <button class="btn secondary small" id="dbBannerBtn" type="button">Choose folder</button>
+    </div>
+  </div>
+
   <div class="panel" data-glean-id="controls-panel">
     <div class="controls">
       <div class="field">
@@ -114,9 +135,7 @@
         <button class="btn secondary small" id="refreshBtn" type="button">Refresh</button>
         <button class="btn secondary small" id="csv" type="button">Export CSV</button>
         <button class="btn secondary small" id="json" type="button">Export JSON</button>
-        <button class="btn secondary small" id="pickFolder" type="button" title="Choose the folder to automatically save the SQLite database after each scan">Choose folder</button>
-        <button class="btn secondary small" id="downloadDB" type="button" title="Download the SQLite database with scan history">Save DB</button>
-        <label class="btn secondary small" style="cursor:pointer;" title="Load a previously saved SQLite database">Load DB<input type="file" id="loadDB" accept=".sqlite,.db"></label>
+        <button class="btn secondary small" id="pickFolder" type="button" title="Choose a folder to automatically save the SQLite database (e.g. the folder of this file). The file is created automatically if missing.">DB folder</button>
       </div>
     </div>
     <div class="filter-bar">
@@ -147,6 +166,7 @@
         </div>
       </div>
       <div id="dbInfo" style="font-size:12px;color:var(--artifact-text-muted);margin-top:10px;"></div>
+      <div id="dbLocation" style="font-size:12px;color:var(--artifact-accent);margin-top:4px;font-family:var(--artifact-mono);word-break:break-all;"></div>
     </div>
     <div class="table-wrap">
       <table id="table">
@@ -170,7 +190,7 @@
   </div>
 
   <footer class="note" data-glean-id="footer-note">
-    Real-time data from GitHub APIs. With token: <code class="inline">GraphQL API</code> (up to 50 repos per request, with draft/issue/age/reviewer). Without token: <code class="inline">REST API</code> with <code class="inline">Link</code> header for exact PR counts. Limits: 60 requests/hour without token, 5,000/hour with token; conditional requests (ETag/304) do not consume quota. Drafts, missing reviewers, stale PRs and authors are calculated from sampled older PRs (up to 50 per repo); total PR and issue counts are always exact. Changes compare the last scan saved in this browser. Charts require a connection (ECharts via CDN). SQLite: every scan is recorded in an in-memory database (tables <code class="inline">scans</code>, <code class="inline">repos</code>, <code class="inline">authors</code>, <code class="inline">labels</code>); use <code class="inline">Choose folder</code> for automatic saving after each scan (Chrome/Edge), or <code class="inline">Save DB</code> to download the file to the same folder as this tool, and <code class="inline">Load DB</code> to accumulate history. If this preview blocks external calls, download the file and open it in the browser.
+    Real-time data from GitHub APIs. With token: <code class="inline">GraphQL API</code> (up to 50 repos per request, with draft/issue/age/reviewer). Without token: <code class="inline">REST API</code> with <code class="inline">Link</code> header for exact PR counts. Limits: 60 requests/hour without token, 5,000/hour with token; conditional requests (ETag/304) do not consume quota. Drafts, missing reviewers, stale PRs and authors are calculated from sampled older PRs (up to 50 per repo); total PR and issue counts are always exact. Changes compare the last scan saved in this browser. Charts require a connection (ECharts via CDN). SQLite: every scan is recorded in an in-memory database (tables <code class="inline">scans</code>, <code class="inline">repos</code>, <code class="inline">authors</code>, <code class="inline">labels</code>). Use <code class="inline">DB folder</code> to save it on disk; on the first use, select the folder containing this file and the database will be created automatically. Data is also persisted in the browser (IndexedDB) between sessions.
   </footer>
 </div>
 

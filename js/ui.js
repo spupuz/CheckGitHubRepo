@@ -248,9 +248,10 @@ APP.ui = (function(){
     $('cancel').addEventListener('click', ()=>{ if(APP.api.getController()) APP.api.getController().abort(); });
     $('csv').addEventListener('click', exportCSV);
     $('json').addEventListener('click', exportJSON);
-    $('downloadDB').addEventListener('click', APP.db.downloadDB);
     $('pickFolder').addEventListener('click', APP.db.pickDBFolder);
-    $('loadDB').addEventListener('change', e=>{ if(e.target.files&&e.target.files[0]) APP.db.loadDB(e.target.files[0]); e.target.value=''; });
+    if($('dbBannerBtn')) $('dbBannerBtn').addEventListener('click', APP.db.pickDBFolder);
+    if($('dbModalBtn')) $('dbModalBtn').addEventListener('click', APP.db.pickDBFolder);
+    if($('dbModalLater')) $('dbModalLater').addEventListener('click', ()=>{ const ov=$('dbModalOverlay'); if(ov) ov.style.display='none'; });
     $('copyLink').addEventListener('click', copyLink);
     $('retryFailed').addEventListener('click', handlers.retryFailed);
     $('showAllBtn').addEventListener('click', ()=>{ APP.state.showAll=true; render(); });

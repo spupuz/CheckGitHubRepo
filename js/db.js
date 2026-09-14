@@ -23,18 +23,28 @@ APP.db = (function(){
       await new Promise((resolve,reject)=>{ const r=d.transaction('kv','readwrite').objectStore('kv').put(val,key); r.onsuccess=()=>resolve(); r.onerror=()=>reject(r.error); });
     }catch(e){}
   }
-  async function idbDel(key){
-    try{ const d=await idbOpen();
-      await new Promise((resolve,reject)=>{ const r=d.transaction('kv','readwrite').objectStore('kv').delete(key); r.onsuccess=()=>resolve(); r.onerror=()=>reject(r.error); });
-    }catch(e){}
-  }
-
   function getDb(){ return db; }
   function isDbReady(){ return dbReady; }
   function getDbDirHandle(){ return dbDirHandle; }
 
+  function loadDBFromBytes(bytes){
+    if(bytes.length<100) return false;
+    const oldDb=db;
+    db=new SQL.Database(bytes);
+    try{oldDb.close();}catch(e){}
+    db.run(`CREATE TABLE IF NOT EXISTS scans(id INTEGER PRIMARY KEY AUTOINCREMENT,timestamp TEXT NOT NULL,accounts TEXT,method TEXT,total_repos INTEGER,total_prs INTEGER);
+      CREATE TABLE IF NOT EXISTS repos(id INTEGER PRIMARY KEY AUTOINCREMENT,scan_id INTEGER,owner TEXT,name TEXT,full_name TEXT,url TEXT,stars INTEGER,language TEXT,is_fork INTEGER,is_archived INTEGER,is_private INTEGER,open_prs INTEGER,draft_prs INTEGER,no_reviewer INTEGER,stale_prs INTEGER,oldest_pr_days INTEGER,open_issues INTEGER,updated_at TEXT);
+      CREATE TABLE IF NOT EXISTS authors(id INTEGER PRIMARY KEY AUTOINCREMENT,scan_id INTEGER,author TEXT,pr_count INTEGER);
+      CREATE TABLE IF NOT EXISTS labels(id INTEGER PRIMARY KEY AUTOINCREMENT,scan_id INTEGER,label TEXT,pr_count INTEGER);
+      CREATE INDEX IF NOT EXISTS idx_repos_scan ON repos(scan_id);
+      CREATE INDEX IF NOT EXISTS idx_authors_scan ON authors(scan_id);
+      CREATE INDEX IF NOT EXISTS idx_repos_full_name ON repos(full_name);
+      CREATE INDEX IF NOT EXISTS idx_scans_timestamp ON scans(timestamp);`);
+    return true;
+  }
+
   function initDB(){
-    if(typeof initSqlJs==='undefined'){ $('downloadDB').disabled=true; $('pickFolder').disabled=true; $('loadDB').parentElement.className='btn secondary small disabled'; return Promise.resolve(); }
+    if(typeof initSqlJs==='undefined'){ $('pickFolder').disabled=true; return Promise.resolve(); }
     dbReadyPromise = new Promise((resolve) => { dbReadyResolve = resolve; });
     initSqlJs({locateFile:file=>cfg.DB_LIB+file}).then(SQL=>{
       db=new SQL.Database();
@@ -65,8 +75,19 @@ APP.db = (function(){
       `);
       dbReady=true;
       if(dbReadyResolve) dbReadyResolve();
-      idbGet('dirHandle').then(h=>{ if(h){ dbDirHandle=h; bindAutoSave(); } });
-    }).catch(()=>{ $('downloadDB').disabled=true; $('pickFolder').disabled=true; $('loadDB').parentElement.className='btn secondary small disabled'; if(dbReadyResolve) dbReadyResolve(); });
+      idbGet('dbData').then(blob=>{
+        if(blob){
+          try{
+            const bytes=new Uint8Array(blob);
+            if(loadDBFromBytes(bytes)){
+              renderDBStats();
+              APP.charts.renderHistoryCharts();
+            }
+          }catch(e){}
+        }
+      });
+      idbGet('dirHandle').then(h=>{ if(h){ dbDirHandle=h; bindAutoSave(); } else { updateDbBanner(); } });
+    }).catch(()=>{ $('pickFolder').disabled=true; if(dbReadyResolve) dbReadyResolve(); });
     return dbReadyPromise;
   }
 
@@ -97,7 +118,12 @@ APP.db = (function(){
       Object.entries(state.labelCounts).forEach(([l,c])=>sl.run([scanId,l,c])); sl.free();
       $('dbPanel').style.display='block';
       renderDBStats();
+      persistToIDB();
     }catch(e){}
+  }
+  function persistToIDB(){
+    if(!db) return;
+    try{ idbSet('dbData',db.export()); }catch(e){}
   }
 
   async function ensureDirPermission(){
@@ -120,45 +146,55 @@ APP.db = (function(){
     }catch(e){ return false; }
   }
   async function pickDBFolder(){
-    if(!window.showDirectoryPicker){ downloadDB(); return; }
+    if(!window.showDirectoryPicker){ APP.ui.setStatus('Your browser does not support the File System Access API. Data is still saved in the browser (IndexedDB).','warn'); return; }
     try{
-      dbDirHandle=await window.showDirectoryPicker({id:'ghprdb',mode:'readwrite'});
+      const handle=await window.showDirectoryPicker({id:'ghprdb',mode:'readwrite'});
+      dbDirHandle=handle;
       await idbSet('dirHandle',dbDirHandle);
       bindAutoSave();
-      const ok=await saveDBToFolder();
-      APP.ui.setStatus(ok?`Database saved automatically to "${dbDirHandle.name}".`:'Folder selected — the database will be saved on the next scan.', ok?'':'');
+      let loaded=false;
+      try{
+        const fh=await dbDirHandle.getFileHandle(cfg.DB_FILE);
+        const file=await fh.getFile();
+        const buf=await file.arrayBuffer();
+        const bytes=new Uint8Array(buf);
+        if(loadDBFromBytes(bytes)){
+          loaded=true;
+          persistToIDB();
+          $('dbPanel').style.display='block';
+          renderDBStats();
+          APP.charts.renderHistoryCharts();
+        }
+      }catch(e){}
+      if(!loaded){
+        const ok=await saveDBToFolder();
+        APP.ui.setStatus(ok?`Database saved to "${dbDirHandle.name}".`:'Folder selected — the database will be saved on the next scan.', ok?'':'');
+      } else {
+        const n=db.exec('SELECT COUNT(*) FROM scans');
+        const count=n&&n.length&&n[0].values.length?n[0].values[0][0]:0;
+        APP.ui.setStatus(`Database loaded from "${dbDirHandle.name}" (${count} scan${count===1?'':'s'} found).`);
+      }
     }catch(e){}
   }
   function bindAutoSave(){
-    $('pickFolder').textContent=(dbDirHandle?'Change folder':'Choose folder');
+    $('pickFolder').textContent=(dbDirHandle?'Change folder':'DB folder');
     if(dbDirHandle) $('pickFolder').classList.add('bound');
     else $('pickFolder').classList.remove('bound');
+    updateDbBanner();
   }
-  function downloadDB(){
-    if(!dbReady||!db) return;
-    const data=db.export();
-    const blob=new Blob([data],{type:'application/x-sqlite3'});
-    const ts=new Date().toISOString().slice(0,10);
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=`${cfg.DB_FILE.replace('.sqlite','')}_${ts}.sqlite`;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(a.href);
-  }
-  function loadDB(file){
-    const reader=new FileReader();
-    reader.onload=()=>{
-      try{
-        const bytes=new Uint8Array(reader.result);
-        if(db){ db.close(); }
-        db=new SQL.Database(bytes); dbReady=true;
-        $('dbPanel').style.display='block';
-        renderDBStats();
-        APP.charts.renderHistoryCharts();
-        APP.ui.setStatus('SQLite database loaded ('+file.name+').', '');
-      }catch(e){ APP.ui.setStatus('Unable to load database: '+(e.message||'invalid file'),'error'); }
-    };
-    reader.readAsArrayBuffer(file);
+  function updateDbBanner(){
+    const b=$('dbBanner');
+    if(!b) return;
+    const show=!dbDirHandle;
+    const ov=$('dbModalOverlay');
+    b.style.display=show?'block':'none';
+    if(ov) ov.style.display=show?'flex':'none';
+    if(show){
+      const n=db?(function(){ try{ const r=db.exec('SELECT COUNT(*) FROM scans'); return r&&r.length&&r[0].values.length?r[0].values[0][0]:0; }catch(e){ return 0; } })():0;
+      const txt=(n?('The database contains '+n+' scan'+(n===1?'':'s')+' — stored only in this browser. '):'')+'Choose a folder (for example, the one containing this file) so the SQLite database is created and kept on disk automatically after each scan.';
+      $('dbBannerText').textContent=txt;
+      if($('dbModalText')) $('dbModalText').textContent=txt;
+    }
   }
   function renderDBStats(){
     if(!db) return;
@@ -180,9 +216,10 @@ APP.db = (function(){
       $('dbAvgPRs').textContent=avg!=null?avg:'—';
       $('dbDelta').textContent=delta;
       $('dbInfo').textContent=(n?('Last scan: '+new Date(latest?latest[2]:null).toLocaleString('en-US')+' · '):'')+
-        'In-memory DB — use "Save DB" to export'+(dbDirHandle?' · auto-save in "'+dbDirHandle.name+'" active.':' to a folder.');
+        'DB auto-persisted in browser (IndexedDB).'+(dbDirHandle?' Folder auto-save active.':' Click "DB folder" to also save as a .sqlite file.');
+      if($('dbLocation')) $('dbLocation').textContent = dbDirHandle ? 'DB file: '+dbDirHandle.name+'/'+cfg.DB_FILE : 'DB stored in: browser (IndexedDB — no folder selected yet).';
     }catch(e){}
   }
 
-  return { initDB, getDb, isDbReady, getDbDirHandle, saveToDB, saveDBToFolder, pickDBFolder, downloadDB, loadDB, renderDBStats, idbGet, idbSet };
+  return { initDB, getDb, isDbReady, getDbDirHandle, saveToDB, saveDBToFolder, pickDBFolder, renderDBStats, idbGet, idbSet };
 })();
