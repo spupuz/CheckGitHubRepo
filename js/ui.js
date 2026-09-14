@@ -269,6 +269,13 @@ APP.ui = (function(){
     $('tokenStore').addEventListener('change', saveToken);
     document.querySelectorAll('thead th[data-sort]').forEach(th=>{ th.addEventListener('click',()=>{ const k=th.dataset.sort; if(APP.state.sortKey===k) APP.state.sortDir*=-1; else { APP.state.sortKey=k; APP.state.sortDir=(k==='name'||k==='oldest')?1:-1; } updateSortHeaders(); render(); savePrefs(); syncHash(); }); th.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); th.click(); } }); });
     window.addEventListener('resize', APP.charts.resizeAll);
+    document.addEventListener('keydown', e => {
+      if (e.key === '/' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) {
+        e.preventDefault();
+        const filterInput = $('filter');
+        if (filterInput && filterInput.offsetParent !== null) filterInput.focus();
+      }
+    });
   }
 
   return { setStatus, showSkeleton, setRunning, render, renderAgg, updateSummary, updateMeta, populateFilters, updateSortHeaders, exportCSV, exportJSON, copyLink, savePrefs, loadPrefs, loadTokenStorePref, saveToken, tokenInputChanged, cacheKey, saveCache, loadCache, signature, loadSnapshot, saveSnapshot, computeDelta, bindEvents, SORTERS };

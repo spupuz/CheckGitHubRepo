@@ -16,3 +16,7 @@
 ## 2024-05-24 - Search Input UX for Filters
 **Learning:** For simple text-based filter inputs, using `<input type="search">` instead of `type="text"` provides built-in browser features like a native clear ("x") button, instantly improving UX without additional JavaScript.
 **Action:** Always prefer `type="search"` over `type="text"` for filter inputs. Ensure you add `aria-label` when a visible `<label>` is missing, and include `input[type=search]` in shared CSS selectors to maintain consistent styling.
+
+## 2026-09-08 - Keyboard Shortcuts for Filtering
+**Learning:** In data-heavy tools, power users frequently need to filter lists without taking their hands off the keyboard. A simple visual hint like `( / )` combined with a global shortcut makes the interface significantly more efficient.
+**Action:** When implementing searchable data tables or lists, always consider adding a global `/` shortcut to focus the main filter input, and expose this shortcut directly in the input's placeholder to aid discovery.
