@@ -12,3 +12,7 @@
 ## 2024-05-19 - Filter input lacks accessible label
 **Learning:** Found an accessibility anti-pattern where a form input field (`id="filter"`) relied only on a visual `placeholder` and lacked an explicit `<label>` or `aria-label`. The neighboring select inputs properly used `aria-label`.
 **Action:** Always ensure that every input field, especially standard text inputs used for search or filtering, has either a linked `<label>` or an `aria-label` attribute to announce its purpose to screen readers.
+
+## 2024-05-24 - Search Input UX for Filters
+**Learning:** For simple text-based filter inputs, using `<input type="search">` instead of `type="text"` provides built-in browser features like a native clear ("x") button, instantly improving UX without additional JavaScript.
+**Action:** Always prefer `type="search"` over `type="text"` for filter inputs. Ensure you add `aria-label` when a visible `<label>` is missing, and include `input[type=search]` in shared CSS selectors to maintain consistent styling.
