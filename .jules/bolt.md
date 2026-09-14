@@ -20,3 +20,6 @@
 ## 2026-09-13 - Date Sorting Bottleneck
 **Learning:** Calling `Date.parse()` on ISO-8601 strings inside sorting callbacks (which execute O(N log N) times) creates significant CPU overhead in JavaScript. ISO-8601 strings are inherently sortable lexicographically.
 **Action:** When sorting dates represented as ISO-8601 strings, use native lexicographical string comparison rather than parsing dates. Handle missing/null dates via short-circuit evaluations (e.g., `|| 'z'` for Infinity or `|| ''` for 0).
+## 2024-05-18 - Avoid chained array iterations for aggregations
+**Learning:** Multiple array methods (`filter`, `reduce`) applied sequentially on the same list of repositories block the main thread by traversing the array multiple times (O(N) * number of properties).
+**Action:** Replace sequential `.filter().reduce()` chains with a single `for` loop that calculates all aggregates in one pass, especially when iterating over large datasets like repositories.

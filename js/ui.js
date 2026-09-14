@@ -91,14 +91,19 @@ APP.ui = (function(){
     $('aggPanel').classList.add('on');
   }
 
+  // ⚡ Bolt: Calculate summary metrics in a single O(N) pass to prevent multiple array traversals
   function updateSummary(){
     const repos=APP.state.repos;
-    const counted=repos.filter(r=>r.openPRs!=null);
-    const total=counted.reduce((s,r)=>s+r.openPRs,0);
-    const withPRs=counted.filter(r=>r.openPRs>0).length;
-    const top=counted.reduce((m,r)=>Math.max(m,r.openPRs),0);
-    function sumOf(k){ const a=repos.filter(r=>r[k]!=null); return a.length?a.reduce((s,r)=>s+r[k],0):null; }
-    const draft=sumOf('draftPRs'), norev=sumOf('noReviewer'), stale=sumOf('stalePRs'), iss=sumOf('openIssues');
+    let total=0, withPRs=0, top=0;
+    let draft=null, norev=null, stale=null, iss=null;
+    for(let i=0, len=repos.length; i<len; i++){
+      const r = repos[i];
+      if (r.openPRs != null) { total += r.openPRs; if (r.openPRs > 0) withPRs++; if (r.openPRs > top) top = r.openPRs; }
+      if (r.draftPRs != null) { if (draft === null) draft = 0; draft += r.draftPRs; }
+      if (r.noReviewer != null) { if (norev === null) norev = 0; norev += r.noReviewer; }
+      if (r.stalePRs != null) { if (stale === null) stale = 0; stale += r.stalePRs; }
+      if (r.openIssues != null) { if (iss === null) iss = 0; iss += r.openIssues; }
+    }
     $('statRepos').textContent=repos.length; $('statPRs').textContent=total; $('statWithPRs').textContent=withPRs;
     $('statTop').textContent=top; $('statDraft').textContent=draft==null?'—':draft;
     $('statNoRev').textContent=norev==null?'—':norev; $('statStale').textContent=stale==null?'—':stale;
