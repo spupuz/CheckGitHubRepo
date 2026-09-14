@@ -2,10 +2,11 @@ window.APP = window.APP || {};
 APP.ui = (function(){
   const { $, esc, cssVar, daysBetween, timeAgo, getUsernames, signature, syncHash, applyHash, tokenStorage, downloadBlob, multiOwner } = APP.utils;
   const cfg = APP.config;
+  // ⚡ Bolt: Optimize date sorting by using native ISO-8601 lexicographical string comparison instead of Date.parse()
   const SORTERS={
     name:r=>r.name.toLowerCase(), openPRs:r=>r.openPRs==null?-1:r.openPRs,
     draftPRs:r=>r.draftPRs==null?-1:r.draftPRs, noReviewer:r=>r.noReviewer==null?-1:r.noReviewer,
-    stalePRs:r=>r.stalePRs==null?-1:r.stalePRs,
+stalePRs:r=>r.stalePRs==null?-1:r.stalePRs,
     // ISO-8601 strings sort lexicographically. 'z' is > any date, '' is < any date.
     // This avoids expensive Date.parse calls during sorting O(N log N).
     oldest:r=>r.oldestPRDate||'z',

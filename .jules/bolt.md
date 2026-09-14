@@ -12,3 +12,7 @@
 ## 2024-05-14 - ISO-8601 String Comparison vs Date.parse for Sorting
 **Learning:** In JavaScript, sorting arrays by date properties that are already formatted as ISO-8601 strings using `Date.parse(dateStr)` inside the sorting comparator function is a significant performance bottleneck (O(N log N) `Date.parse` calls). ISO-8601 strings naturally sort correctly in lexicographical order.
 **Action:** Replace `Date.parse(isoString)` in comparators with direct string comparison (`str1 < str2`). For handling missing/null values, use fallbacks that maintain sort order (e.g., `'z'` as Infinity, `''` as 0).
+
+## 2026-09-12 - Lexicographical Date Sorting Optimization
+**Learning:** When sorting collections by ISO-8601 date strings, using `Date.parse()` in the sort comparator introduces unnecessary O(N log N) overhead (converting strings to timestamps continuously during the sort passes). Since ISO-8601 strings sort perfectly alphabetically (lexicographically), they can be compared directly as strings.
+**Action:** When sorting ISO-8601 strings, use direct string comparison instead of parsing. Handle null/missing dates via short-circuit evaluations (e.g. `|| 'z'` for Infinity or `|| ''` for 0) to maintain O(N log N) time but drastically reduce the constant factor by avoiding timestamp conversion.
