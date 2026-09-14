@@ -3,14 +3,14 @@ APP.ui = (function(){
   const { $, esc, cssVar, daysBetween, timeAgo, getUsernames, signature, syncHash, applyHash, tokenStorage, downloadBlob, multiOwner } = APP.utils;
   const cfg = APP.config;
   // ⚡ Bolt: Optimize date sorting by using native ISO-8601 lexicographical string comparison instead of Date.parse()
-  const SORTERS={
+  const SORTERS=Object.assign(Object.create(null), {
     name:r=>r.name.toLowerCase(), openPRs:r=>r.openPRs==null?-1:r.openPRs,
     draftPRs:r=>r.draftPRs==null?-1:r.draftPRs, noReviewer:r=>r.noReviewer==null?-1:r.noReviewer,
 // ISO-8601 strings sort lexicographically. 'z' is > any date, '' is < any date.
     // This avoids expensive Date.parse calls during sorting O(N log N).
     stalePRs:r=>r.stalePRs==null?-1:r.stalePRs, oldest:r=>r.oldestPRDate||'z',
     openIssues:r=>r.openIssues==null?-1:r.openIssues, stars:r=>r.stars, updated:r=>r.updatedRaw||''
-  };
+  });
 
   const statusEl=$('status');
   function setStatus(m,cls){ statusEl.textContent=m||''; statusEl.className=cls||''; }
@@ -182,7 +182,7 @@ APP.ui = (function(){
   function loadCache(pendingLang,pendingOwn){
     try{ const raw=localStorage.getItem(cacheKey()); if(!raw) return false; const c=JSON.parse(raw);
       const state=APP.state;
-      state.repos=c.repos||[]; state.authorCounts=c.authorCounts||{}; state.labelCounts=c.labelCounts||{}; state.usedMethod=c.method||'rest'; state.lastTs=c.ts||null;
+      state.repos=c.repos||[]; state.authorCounts=c.authorCounts||Object.create(null); state.labelCounts=c.labelCounts||Object.create(null); state.usedMethod=c.method||'rest'; state.lastTs=c.ts||null;
       if(!state.repos.length) return false;
       state.lastDelta=loadSnapshot();
       $('resultsPanel').style.display='block'; populateFilters();

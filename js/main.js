@@ -1,6 +1,6 @@
 window.APP = window.APP || {};
 APP.state = {
-  repos:[], authorCounts:{}, labelCounts:{},
+  repos:[], authorCounts:Object.create(null), labelCounts:Object.create(null),
   sortKey:'openPRs', sortDir:-1,
   running:false, showAll:false, lastTs:null, lastDelta:null,
   usedMethod:'rest',
@@ -23,7 +23,7 @@ APP.main = (function(){
     if(hasToken) APP.api.checkToken();
     const prevSnap=loadSnapshot();
     savePrefs(); syncHash();
-    APP.state.repos=[]; APP.state.authorCounts={}; APP.state.labelCounts={}; APP.state.showAll=false; APP.state.lastDelta=prevSnap;
+    APP.state.repos=[]; APP.state.authorCounts=Object.create(null); APP.state.labelCounts=Object.create(null); APP.state.showAll=false; APP.state.lastDelta=prevSnap;
     $('summary').classList.remove('on'); $('aggPanel').classList.remove('on'); $('chartsPanel').classList.remove('on'); $('deltaPanel').classList.remove('on');
     $('methodBadge').textContent=hasToken?(ext?'method: GraphQL + extended metrics':'method: GraphQL'):'method: REST'; $('methodBadge').classList.remove('hidden');
     if($('extended').checked && !hasToken) setStatus('Extended metrics ignored: they require a token. Using REST for PR counts only.','warn');
