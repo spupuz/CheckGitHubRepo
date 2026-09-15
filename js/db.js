@@ -73,20 +73,31 @@ APP.db = (function(){
         CREATE INDEX IF NOT EXISTS idx_repos_full_name ON repos(full_name);
         CREATE INDEX IF NOT EXISTS idx_scans_timestamp ON scans(timestamp);
       `);
-      dbReady=true;
-      if(dbReadyResolve) dbReadyResolve();
-      idbGet('dbData').then(blob=>{
+      const finish=()=>{
+        dbReady=true;
+        if(dbReadyResolve) dbReadyResolve();
+      };
+      Promise.all([idbGet('dbData'), idbGet('dirHandle')]).then(async ([blob,h])=>{
+        if(h) dbDirHandle=h;
+        bindAutoSave();
+        let loaded=false;
         if(blob){
+          try{ loaded=loadDBFromBytes(new Uint8Array(blob)); }catch(e){}
+        }
+        if(!loaded&&dbDirHandle){
           try{
-            const bytes=new Uint8Array(blob);
-            if(loadDBFromBytes(bytes)){
-              renderDBStats();
-              APP.charts.renderHistoryCharts();
-            }
+            const fh=await dbDirHandle.getFileHandle(cfg.DB_FILE);
+            const file=await fh.getFile();
+            const buf=await file.arrayBuffer();
+            if(buf.byteLength>=100) loaded=loadDBFromBytes(new Uint8Array(buf));
           }catch(e){}
         }
+        if(loaded){
+          renderDBStats();
+          APP.charts.renderHistoryCharts();
+        }
+        finish();
       });
-      idbGet('dirHandle').then(h=>{ if(h){ dbDirHandle=h; bindAutoSave(); } else { updateDbBanner(); } });
     }).catch(()=>{ $('pickFolder').disabled=true; if(dbReadyResolve) dbReadyResolve(); });
     return dbReadyPromise;
   }
