@@ -11,3 +11,7 @@
 **Vulnerability:** The application's Content Security Policy allowed `'unsafe-inline'` in the `script-src` directive, which could be exploited for Cross-Site Scripting (XSS) if unescaped user input were injected into the DOM.
 **Learning:** The inline `<script>` tags for the init logic required the use of `'unsafe-inline'`. This created a less secure application by allowing any injected script to run.
 **Prevention:** Externalize all inline scripts to `.js` files and completely remove `'unsafe-inline'` from `script-src` in the Content Security Policy to enforce a strict boundary against XSS.
+## 2025-02-28 - Dictionary Prototype Pollution
+**Vulnerability:** The `authorCounts`, `labelCounts`, and `SORTERS` objects were initialized with standard object literals `{}`. An attacker manipulating label names, usernames, or sorting keys to match prototype properties (e.g., `__proto__`, `constructor`) could cause unexpected behavior, property overwriting, or application crashes when these dictionaries were iterated or checked for property existence.
+**Learning:** Even entirely client-side applications face Denial of Service or logic manipulation risks if user-provided strings are used as keys in standard JavaScript objects.
+**Prevention:** Use `Object.create(null)` to initialize plain dictionary objects that store arbitrary or user-defined string keys, ensuring they have no prototype chain.
