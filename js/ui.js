@@ -4,7 +4,7 @@ APP.ui = (function(){
   const cfg = APP.config;
   // ⚡ Bolt: Optimize date sorting by using native ISO-8601 lexicographical string comparison instead of Date.parse()
   const SORTERS=Object.assign(Object.create(null), {
-    name:r=>r.name.toLowerCase(), openPRs:r=>r.openPRs==null?-1:r.openPRs,
+    name:r=>r.nameLower, openPRs:r=>r.openPRs==null?-1:r.openPRs,
     draftPRs:r=>r.draftPRs==null?-1:r.draftPRs, noReviewer:r=>r.noReviewer==null?-1:r.noReviewer,
 // ISO-8601 strings sort lexicographically. 'z' is > any date, '' is < any date.
     // This avoids expensive Date.parse calls during sorting O(N log N).
@@ -26,7 +26,8 @@ APP.ui = (function(){
     const checkMin=!isNaN(min);
     return list.filter(r=>{
       if(onlyWithPRs && !(r.openPRs>0)) return false;
-      if(f && !r.name.toLowerCase().includes(f) && !r.fullName.toLowerCase().includes(f)) return false;
+      // ⚡ Bolt: Using pre-calculated lowercased names instead of calling toLowerCase() on every render pass
+      if(f && !r.nameLower.includes(f) && !r.fullNameLower.includes(f)) return false;
       if(lang && (r.language||'—')!==lang) return false;
       if(own && r.owner!==own) return false;
       if(checkMin && !((r.openPRs||0)>=min)) return false;

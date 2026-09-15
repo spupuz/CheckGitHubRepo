@@ -23,3 +23,7 @@
 ## 2024-05-18 - Avoid chained array iterations for aggregations
 **Learning:** Multiple array methods (`filter`, `reduce`) applied sequentially on the same list of repositories block the main thread by traversing the array multiple times (O(N) * number of properties).
 **Action:** Replace sequential `.filter().reduce()` chains with a single `for` loop that calculates all aggregates in one pass, especially when iterating over large datasets like repositories.
+
+## 2026-09-15 - Pre-calculated lowercase names
+**Learning:** Recomputing `.toLowerCase()` inside filter functions during render cycles causes unnecessary allocations and time complexity O(N).
+**Action:** When working with large lists that need case-insensitive search, pre-calculate the lowercased strings during the initial data fetch to optimize the filtering.

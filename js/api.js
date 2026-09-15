@@ -57,7 +57,8 @@ APP.api = (function(){
       conn.nodes.forEach(n=>{
         const repoOwner=n.owner?n.owner.login:login;
         if(!includeCollab && owner.__typename==='User' && repoOwner!==login) return;
-        const r={owner:repoOwner,name:n.name,fullName:n.nameWithOwner,url:n.url,stars:n.stargazerCount||0,
+        // ⚡ Bolt: Pre-calculate lowercased names to avoid O(N) toLowerCase() calls during render loops
+        const r={owner:repoOwner,name:n.name,fullName:n.nameWithOwner,nameLower:(n.name||'').toLowerCase(),fullNameLower:(n.nameWithOwner||'').toLowerCase(),url:n.url,stars:n.stargazerCount||0,
           language:n.primaryLanguage?n.primaryLanguage.name:null,fork:n.isFork,archived:n.isArchived,private:n.isPrivate,
           updated:timeAgo(n.updatedAt),updatedRaw:n.updatedAt,openPRs:n.pullRequests.totalCount,
           draftPRs:null,noReviewer:null,stalePRs:null,oldestPRDate:null,openIssues:ext&&n.issues?n.issues.totalCount:null};
@@ -90,7 +91,7 @@ APP.api = (function(){
       const res=await page(kind,p); if(!res.ok||!res.data.length) break;
       all=all.concat(res.data); p++; APP.ui.setStatus(`Fetching repositories (${login})… ${all.length}`);
     }
-    return all.map(r=>({owner:login,name:r.name,fullName:r.full_name,url:r.html_url,stars:r.stargazers_count||0,
+    return all.map(r=>({owner:login,name:r.name,fullName:r.full_name,nameLower:(r.name||'').toLowerCase(),fullNameLower:(r.full_name||'').toLowerCase(),url:r.html_url,stars:r.stargazers_count||0,
       language:r.language,fork:r.fork,archived:r.archived,private:r.private,updated:timeAgo(r.updated_at),
       updatedRaw:r.updated_at,openPRs:null,draftPRs:null,noReviewer:null,stalePRs:null,oldestPRDate:null,openIssues:null}));
   }
