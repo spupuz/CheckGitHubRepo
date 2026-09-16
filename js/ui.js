@@ -154,7 +154,7 @@ APP.ui = (function(){
     try{
       let tok=''; try{ tok=localStorage.getItem('ghPrChecker.token')||sessionStorage.getItem('ghPrChecker.token')||''; }catch(e){}
       if(tok){ $('token').value=tok; $('forgetToken').style.display='inline-block'; }
-      const raw=localStorage.getItem(cfg.PREF_KEY); if(raw){ const p=JSON.parse(raw);
+      const raw=localStorage.getItem(cfg.PREF_KEY); if(raw){ const p=Object.assign(Object.create(null), JSON.parse(raw));
         $('rememberUser').checked=true; if(p.username) $('username').value=p.username;
         if('extended' in p) $('extended').checked=p.extended;
         $('includeForks').checked=!!p.forks; $('includeArchived').checked=!!p.archived; $('includeCollab').checked=!!p.collab;
@@ -185,9 +185,9 @@ APP.ui = (function(){
   function cacheKey(){ return 'ghPrChecker.cache.'+signature(); }
   function saveCache(){ const state=APP.state; try{ localStorage.setItem(cacheKey(),JSON.stringify({ts:state.lastTs,repos:state.repos,authorCounts:state.authorCounts,labelCounts:state.labelCounts,method:state.usedMethod})); }catch(e){} }
   function loadCache(pendingLang,pendingOwn){
-    try{ const raw=localStorage.getItem(cacheKey()); if(!raw) return false; const c=JSON.parse(raw);
+    try{ const raw=localStorage.getItem(cacheKey()); if(!raw) return false; const c=Object.assign(Object.create(null), JSON.parse(raw));
       const state=APP.state;
-      state.repos=c.repos||[]; state.authorCounts=c.authorCounts||Object.create(null); state.labelCounts=c.labelCounts||Object.create(null); state.usedMethod=c.method||'rest'; state.lastTs=c.ts||null;
+      state.repos=c.repos||[]; state.authorCounts=c.authorCounts?Object.assign(Object.create(null), c.authorCounts):Object.create(null); state.labelCounts=c.labelCounts?Object.assign(Object.create(null), c.labelCounts):Object.create(null); state.usedMethod=c.method||'rest'; state.lastTs=c.ts||null;
       if(!state.repos.length) return false;
       state.lastDelta=loadSnapshot();
       $('resultsPanel').style.display='block'; populateFilters();
@@ -204,7 +204,7 @@ APP.ui = (function(){
     }catch(e){ return false; }
   }
 
-  function loadSnapshot(){ try{ const raw=localStorage.getItem('ghPrChecker.snap.'+signature()); return raw?JSON.parse(raw):null; }catch(e){ return null; } }
+  function loadSnapshot(){ try{ const raw=localStorage.getItem('ghPrChecker.snap.'+signature()); if(!raw) return null; const parsed = JSON.parse(raw); if(parsed.map) parsed.map = Object.assign(Object.create(null), parsed.map); return Object.assign(Object.create(null), parsed); }catch(e){ return null; } }
   function saveSnapshot(){ const state=APP.state; try{ const map={}; state.repos.forEach(r=>{ if(r.openPRs!=null) map[r.fullName]=r.openPRs; }); localStorage.setItem('ghPrChecker.snap.'+signature(),JSON.stringify({ts:Date.now(),total:state.repos.reduce((s,r)=>s+(r.openPRs||0),0),map})); }catch(e){} }
   function computeDelta(prev){
     const state=APP.state;
