@@ -19,3 +19,8 @@
 **Vulnerability:** Dictionary objects used for mapping (e.g. `authorCounts`, `labelCounts`, `map`) were instantiated as plain objects `{}` and parsed blindly from `localStorage` using `JSON.parse()`.
 **Learning:** This exposes the application to prototype pollution and unexpected property access when user-provided data (like GitHub usernames) matches built-in object properties (like `__proto__` or `constructor`).
 **Prevention:** Always initialize dictionaries with `Object.create(null)` instead of `{}`. When deserializing JSON maps from storage, wrap the object with `Object.assign(Object.create(null), parsedMap)`.
+
+## 2024-05-14 - Insecure Deserialization in localStorage
+**Vulnerability:** Dictionaries loaded from `localStorage` using `JSON.parse` inherited `Object.prototype`, reopening prototype pollution vectors, despite being previously initialized with `Object.create(null)`.
+**Learning:** `JSON.parse` implicitly attaches `Object.prototype` to deserialized objects, undoing prototype pollution mitigations.
+**Prevention:** Always wrap `JSON.parse` results for sensitive dictionaries with `Object.assign(Object.create(null), parsedData)` to ensure they do not inherit potentially dangerous native properties.
