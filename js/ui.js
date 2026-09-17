@@ -240,6 +240,7 @@ APP.ui = (function(){
         render();
         syncHash();
         savePrefs();
+        const f = $('filter'); if(f) f.focus();
         return;
       }
       const el=e.target.closest('[data-retry]');
@@ -255,6 +256,7 @@ APP.ui = (function(){
     $('run').addEventListener('click', handlers.run);
     $('refreshBtn').addEventListener('click', handlers.run);
     $('cancel').addEventListener('click', ()=>{ if(APP.api.getController()) APP.api.getController().abort(); });
+    $('username').addEventListener('input', ()=> $('username').removeAttribute('aria-invalid') );
     $('csv').addEventListener('click', exportCSV);
     $('json').addEventListener('click', exportJSON);
     $('pickFolder').addEventListener('click', APP.db.pickDBFolder);

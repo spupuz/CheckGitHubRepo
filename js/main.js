@@ -15,8 +15,9 @@ APP.main = (function(){
   async function run(){
     if(APP.state.running) return;
     const users=getUsernames();
-    if(!users.length){ setStatus('Enter at least one GitHub username.','error'); return; }
-    for(const u of users){ if(!/^[A-Za-z0-9-]{1,39}$/.test(u)){ setStatus(`Invalid username: "${u}". Only letters, numbers, and hyphens are allowed.`,'error'); return; } }
+    if(!users.length){ $('username').setAttribute('aria-invalid', 'true'); $('username').focus(); setStatus('Enter at least one GitHub username.','error'); return; }
+    for(const u of users){ if(!/^[A-Za-z0-9-]{1,39}$/.test(u)){ $('username').setAttribute('aria-invalid', 'true'); $('username').focus(); setStatus(`Invalid username: "${u}". Only letters, numbers, and hyphens are allowed.`,'error'); return; } }
+    $('username').removeAttribute('aria-invalid');
     const hasToken=!!$('token').value.trim();
     const ext=$('extended').checked && hasToken;
     APP.state.usedMethod=hasToken?'graphql':'rest';

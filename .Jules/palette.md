@@ -20,3 +20,7 @@
 ## 2026-09-08 - Keyboard Shortcuts for Filtering
 **Learning:** In data-heavy tools, power users frequently need to filter lists without taking their hands off the keyboard. A simple visual hint like `( / )` combined with a global shortcut makes the interface significantly more efficient.
 **Action:** When implementing searchable data tables or lists, always consider adding a global `/` shortcut to focus the main filter input, and expose this shortcut directly in the input's placeholder to aid discovery.
+
+## 2024-05-25 - Focus management with dynamically removed elements
+**Learning:** In vanilla HTML/JS applications, when an element currently holding focus (like a "Clear filters" button in an empty state) is removed from the DOM, focus typically drops to the `body` element. This causes a confusing experience for keyboard and screen reader users, who lose their context in the page.
+**Action:** Whenever a button click results in the button's own removal (such as clearing a list filter and dismissing the empty state), explicitly use `.focus()` to shift focus to the next logical interactive element (like the search/filter input itself) to maintain a continuous accessibility experience.
