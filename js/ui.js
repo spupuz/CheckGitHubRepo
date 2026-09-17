@@ -4,7 +4,7 @@ APP.ui = (function(){
   const cfg = APP.config;
   // ⚡ Bolt: Optimize date sorting by using native ISO-8601 lexicographical string comparison instead of Date.parse()
   const SORTERS=Object.assign(Object.create(null), {
-name:r=>r.nameLower || r.name.toLowerCase(), openPRs:r=>r.openPRs==null?-1:r.openPRs,
+    name:r=>r.nameLower || r.name.toLowerCase(), openPRs:r=>r.openPRs==null?-1:r.openPRs,
     draftPRs:r=>r.draftPRs==null?-1:r.draftPRs, noReviewer:r=>r.noReviewer==null?-1:r.noReviewer,
 // ISO-8601 strings sort lexicographically. 'z' is > any date, '' is < any date.
     // This avoids expensive Date.parse calls during sorting O(N log N).
@@ -26,7 +26,7 @@ name:r=>r.nameLower || r.name.toLowerCase(), openPRs:r=>r.openPRs==null?-1:r.ope
     const checkMin=!isNaN(min);
     return list.filter(r=>{
       if(onlyWithPRs && !(r.openPRs>0)) return false;
-if(f && !(r.nameLower || r.name.toLowerCase()).includes(f) && !(r.fullNameLower || r.fullName.toLowerCase()).includes(f)) return false;
+      if(f && !(r.nameLower || r.name.toLowerCase()).includes(f) && !(r.fullNameLower || r.fullName.toLowerCase()).includes(f)) return false;
       if(lang && (r.language||'—')!==lang) return false;
       if(own && r.owner!==own) return false;
       if(checkMin && !((r.openPRs||0)>=min)) return false;
@@ -187,7 +187,7 @@ if(f && !(r.nameLower || r.name.toLowerCase()).includes(f) && !(r.fullNameLower 
   function loadCache(pendingLang,pendingOwn){
     try{ const raw=localStorage.getItem(cacheKey()); if(!raw) return false; const c=Object.assign(Object.create(null), JSON.parse(raw));
       const state=APP.state;
-state.repos=c.repos||[]; state.authorCounts=c.authorCounts ? Object.assign(Object.create(null), c.authorCounts) : Object.create(null); state.labelCounts=c.labelCounts ? Object.assign(Object.create(null), c.labelCounts) : Object.create(null); state.usedMethod=c.method||'rest'; state.lastTs=c.ts||null;
+      state.repos=c.repos||[]; state.authorCounts=c.authorCounts ? Object.assign(Object.create(null), c.authorCounts) : Object.create(null); state.labelCounts=c.labelCounts ? Object.assign(Object.create(null), c.labelCounts) : Object.create(null); state.usedMethod=c.method||'rest'; state.lastTs=c.ts||null;
       if(!state.repos.length) return false;
       state.lastDelta=loadSnapshot();
       $('resultsPanel').style.display='block'; populateFilters();
@@ -204,7 +204,7 @@ state.repos=c.repos||[]; state.authorCounts=c.authorCounts ? Object.assign(Objec
     }catch(e){ return false; }
   }
 
-function loadSnapshot(){ try{ const raw=localStorage.getItem('ghPrChecker.snap.'+signature()); if(raw) { const snap=JSON.parse(raw); if(snap.map) snap.map=Object.assign(Object.create(null), snap.map); return snap; } return null; }catch(e){ return null; } }
+  function loadSnapshot(){ try{ const raw=localStorage.getItem('ghPrChecker.snap.'+signature()); if(raw) { const snap=JSON.parse(raw); if(snap.map) snap.map=Object.assign(Object.create(null), snap.map); return snap; } return null; }catch(e){ return null; } }
   function saveSnapshot(){ const state=APP.state; try{ const map=Object.create(null); state.repos.forEach(r=>{ if(r.openPRs!=null) map[r.fullName]=r.openPRs; }); localStorage.setItem('ghPrChecker.snap.'+signature(),JSON.stringify({ts:Date.now(),total:state.repos.reduce((s,r)=>s+(r.openPRs||0),0),map})); }catch(e){} }
   function computeDelta(prev){
     const state=APP.state;
