@@ -43,6 +43,62 @@ APP.db = (function(){
     return true;
   }
 
+  function scanCount(){
+    try{ const r=db.exec('SELECT COUNT(*) FROM scans'); return r&&r.length&&r[0].values.length?r[0].values[0][0]:0; }catch(e){ return 0; }
+  }
+
+  function mergeScanSet(tmp,existing){
+    const rs=tmp.exec('SELECT id, timestamp, accounts, method, total_repos, total_prs FROM scans ORDER BY id ASC');
+    if(!rs||!rs.length||!rs[0].values.length) return 0;
+    const st=db.prepare('INSERT INTO scans(timestamp,accounts,method,total_repos,total_prs) VALUES(?,?,?,?,?)');
+    const rr=db.prepare('INSERT INTO repos(scan_id,owner,name,full_name,url,stars,language,is_fork,is_archived,is_private,open_prs,draft_prs,no_reviewer,stale_prs,oldest_pr_days,open_issues,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    const sa=db.prepare('INSERT INTO authors(scan_id,author,pr_count) VALUES(?,?,?)');
+    const sl=db.prepare('INSERT INTO labels(scan_id,label,pr_count) VALUES(?,?,?)');
+    let imported=0;
+    try{
+      for(let i=0;i<rs[0].values.length;i++){
+        const row=rs[0].values[i];
+        if(existing.has(row[1])) continue;
+        st.run([row[1],row[2],row[3],row[4],row[5]]);
+        const scanId=dbSet();
+        existing.add(row[1]);
+        const pr=tmp.exec('SELECT owner,name,full_name,url,stars,language,is_fork,is_archived,is_private,open_prs,draft_prs,no_reviewer,stale_prs,oldest_pr_days,open_issues,updated_at FROM repos WHERE scan_id=?',[row[0]]);
+        if(pr&&pr.length&&pr[0].values.length) pr[0].values.forEach(v=>rr.run([scanId].concat(v)));
+        const pa=tmp.exec('SELECT author,pr_count FROM authors WHERE scan_id=?',[row[0]]);
+        if(pa&&pa.length&&pa[0].values.length) pa[0].values.forEach(v=>sa.run([scanId,v[0],v[1]]));
+        const pl=tmp.exec('SELECT label,pr_count FROM labels WHERE scan_id=?',[row[0]]);
+        if(pl&&pl.length&&pl[0].values.length) pl[0].values.forEach(v=>sl.run([scanId,v[0],v[1]]));
+        imported++;
+      }
+    }finally{ st.free(); rr.free(); sa.free(); sl.free(); }
+    return imported;
+  }
+
+  function mergeDBFromBytes(bytes){
+    if(bytes.length<100) return 0;
+    let tmp=null;
+    try{ tmp=new SQL.Database(bytes); }catch(e){ return 0; }
+    try{
+      const existing=new Set();
+      const r=db.exec('SELECT timestamp FROM scans');
+      if(r&&r.length&&r[0].values.length) r[0].values.forEach(v=>existing.add(v[0]));
+      const n=mergeScanSet(tmp,existing);
+      if(n>0) persistToIDB();
+      return n;
+    }catch(e){ return 0; }
+    finally{ try{ tmp.close(); }catch(e){} }
+  }
+
+  async function loadFolderBytes(){
+    if(!dbDirHandle) return null;
+    try{
+      const fh=await dbDirHandle.getFileHandle(cfg.DB_FILE);
+      const file=await fh.getFile();
+      const buf=await file.arrayBuffer();
+      return buf.byteLength>=100?new Uint8Array(buf):null;
+    }catch(e){ return null; }
+  }
+
   function initDB(){
     if(typeof initSqlJs==='undefined'){ $('pickFolder').disabled=true; return Promise.resolve(); }
     dbReadyPromise = new Promise((resolve) => { dbReadyResolve = resolve; });
@@ -80,19 +136,19 @@ APP.db = (function(){
       Promise.all([idbGet('dbData'), idbGet('dirHandle')]).then(async ([blob,h])=>{
         if(h) dbDirHandle=h;
         bindAutoSave();
-        let loaded=false;
+        let restored=false;
         if(blob){
-          try{ loaded=loadDBFromBytes(new Uint8Array(blob)); }catch(e){}
+          try{ restored=loadDBFromBytes(new Uint8Array(blob)); }catch(e){}
         }
-        if(!loaded&&dbDirHandle){
+        const fb=await loadFolderBytes();
+        if(fb){
           try{
-            const fh=await dbDirHandle.getFileHandle(cfg.DB_FILE);
-            const file=await fh.getFile();
-            const buf=await file.arrayBuffer();
-            if(buf.byteLength>=100) loaded=loadDBFromBytes(new Uint8Array(buf));
+            if(restored) mergeDBFromBytes(fb);
+            else restored=loadDBFromBytes(fb);
           }catch(e){}
         }
-        if(loaded){
+        if(restored){
+          persistToIDB();
           renderDBStats();
           APP.charts.renderHistoryCharts();
         }
@@ -169,8 +225,12 @@ APP.db = (function(){
         const file=await fh.getFile();
         const buf=await file.arrayBuffer();
         const bytes=new Uint8Array(buf);
-        if(loadDBFromBytes(bytes)){
-          loaded=true;
+        if(bytes.length>=100){
+          if(db) mergeDBFromBytes(bytes);
+          else loaded=loadDBFromBytes(bytes);
+          loaded=loaded||scanCount()>0;
+        }
+        if(loaded){
           persistToIDB();
           $('dbPanel').style.display='block';
           renderDBStats();

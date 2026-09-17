@@ -1,6 +1,6 @@
 window.APP = window.APP || {};
 APP.charts = (function(){
-  const { $, cssVar, dayKey, toRGBA } = APP.utils;
+  const { $, cssVar, toRGBA } = APP.utils;
   let chartTop=null, chartDist=null, chartHistTotal=null, chartHistRepos=null;
 
   function resizeAll(){
@@ -55,37 +55,28 @@ APP.charts = (function(){
       const danger=cssVar('--artifact-danger')||'#cf222e';
       const axis={ axisLabel:{color:muted,fontSize:10}, axisLine:{lineStyle:{color:muted}} };
       const now=new Date();
-      const days=[];
-      for(let i=29;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i); days.push({key:dayKey(d),label:d.toLocaleDateString('en-US',{day:'2-digit',month:'2-digit'})}); }
-      const r2=db.exec('SELECT timestamp, total_prs FROM scans ORDER BY id ASC');
+      const cutoff=new Date(now.getFullYear(),now.getMonth(),now.getDate()-29).toISOString();
+      const r2=db.exec('SELECT timestamp, total_prs FROM scans WHERE timestamp >= ? ORDER BY id ASC',[cutoff]);
       if(!r2||!r2.length||!r2[0].values.length){ $('historyChartsPanel').classList.remove('on'); return; }
-      const scans=r2[0].values.map(v=>({ts:v[0],total:v[1]}));
-      const totalByDay=Object.create(null);
-      scans.forEach(s=>{ const k=dayKey(new Date(s.ts)); totalByDay[k]=s.total; });
-      const totalSeries=days.map(d=>totalByDay[d.key]!=null?totalByDay[d.key]:null);
-      const hasData=totalSeries.some(v=>v!=null);
-      if(!hasData){ $('historyChartsPanel').classList.remove('on'); return; }
-      const labels=days.map(d=>d.label);
+      const scanPoints=r2[0].values.map(v=>({ts:v[0],total:v[1]}));
 
       requestAnimationFrame(()=>{
         if(!chartHistTotal) chartHistTotal=echarts.init($('chartHistoryTotal'),null,{renderer:'svg'});
         chartHistTotal.setOption({
           grid:{left:8,right:24,top:20,bottom:24,containLabel:true},
           tooltip:{trigger:'axis',axisPointer:{type:'cross'}},
-          xAxis:Object.assign({type:'category',data:labels,boundaryGap:false},axis),
+          xAxis:Object.assign({type:'time'},axis),
           yAxis:Object.assign({type:'value',minInterval:1},axis),
-          series:[{type:'line',data:totalSeries,smooth:false,connectNulls:true,symbol:'circle',symbolSize:6,lineStyle:{color:accent,width:2.5},itemStyle:{color:accent},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:toRGBA(accent,0.25)},{offset:1,color:toRGBA(accent,0.02)}]}},label:{show:true,position:'top',color:muted,fontSize:10}}]
+          series:[{type:'line',data:scanPoints.map(p=>[p.ts,p.total]),smooth:false,connectNulls:true,symbol:'circle',symbolSize:6,lineStyle:{color:accent,width:2.5},itemStyle:{color:accent},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:toRGBA(accent,0.25)},{offset:1,color:toRGBA(accent,0.02)}]}},label:scanPoints.length<=8?{show:true,position:'top',color:muted,fontSize:10}:{show:false}}]
         });
       });
 
-      const r3=db.exec('SELECT r.full_name, SUM(r.open_prs) as total_prs FROM repos r JOIN scans s ON r.scan_id=s.id WHERE s.timestamp >= ? GROUP BY r.full_name ORDER BY total_prs DESC LIMIT 5',[dayKey(new Date(now.getTime()-29*86400000))]);
+      const r3=db.exec('SELECT r.full_name, SUM(r.open_prs) as total_prs FROM repos r JOIN scans s ON r.scan_id=s.id WHERE s.timestamp >= ? GROUP BY r.full_name ORDER BY total_prs DESC LIMIT 5',[cutoff]);
       const topRepoNames=r3&&r3.length?r3[0].values.map(v=>v[0]):[];
       const repoColors=[accent,warn,danger,'#8b5cf6','#06b6d4'];
       const repoSeries=topRepoNames.map((repoName,idx)=>{
-        const r4=db.exec('SELECT s.timestamp, r.open_prs FROM repos r JOIN scans s ON r.scan_id=s.id WHERE r.full_name=? ORDER BY s.id ASC',[repoName]);
-        const repoByDay=Object.create(null);
-        r4[0].values.forEach(v=>{ repoByDay[dayKey(new Date(v[0]))]=v[1]; });
-        const data=days.map(d=>repoByDay[d.key]!=null?repoByDay[d.key]:null);
+        const r4=db.exec('SELECT s.timestamp, r.open_prs FROM repos r JOIN scans s ON r.scan_id=s.id WHERE r.full_name=? AND s.timestamp >= ? ORDER BY s.id ASC',[repoName,cutoff]);
+        const data=r4&&r4.length&&r4[0].values.length?r4[0].values.map(v=>[v[0],v[1]]):[];
         return {name:repoName,type:'line',smooth:false,connectNulls:true,symbol:'circle',symbolSize:5,lineStyle:{color:repoColors[idx%repoColors.length],width:2},itemStyle:{color:repoColors[idx%repoColors.length]},data};
       });
 
@@ -95,7 +86,7 @@ APP.charts = (function(){
           grid:{left:8,right:24,top:26,bottom:24,containLabel:true},
           tooltip:{trigger:'axis',axisPointer:{type:'cross'}},
           legend:{textStyle:{color:muted,fontSize:11},top:0,itemWidth:14,itemHeight:8,type:'scroll'},
-          xAxis:Object.assign({type:'category',data:labels,boundaryGap:false},axis),
+          xAxis:Object.assign({type:'time'},axis),
           yAxis:Object.assign({type:'value',minInterval:1},axis),
           series:repoSeries
         });
