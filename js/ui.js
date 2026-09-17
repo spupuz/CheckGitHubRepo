@@ -281,9 +281,27 @@ APP.ui = (function(){
       if (e.key === '/' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) {
         e.preventDefault();
         const filterInput = $('filter');
-        if (filterInput && filterInput.offsetParent !== null) filterInput.focus();
+        if (filterInput && filterInput.offsetParent !== null) {
+          filterInput.focus();
+          filterInput.select();
+        }
+      }
+      if (e.key === 'Escape') {
+        const ov = $('dbModalOverlay');
+        if (ov && ov.style.display !== 'none') {
+          ov.style.display = 'none';
+        }
       }
     });
+
+    const dbModalOverlay = $('dbModalOverlay');
+    if (dbModalOverlay) {
+      dbModalOverlay.addEventListener('click', e => {
+        if (e.target === dbModalOverlay) {
+          dbModalOverlay.style.display = 'none';
+        }
+      });
+    }
   }
 
   return { setStatus, showSkeleton, setRunning, render, renderAgg, updateSummary, updateMeta, populateFilters, updateSortHeaders, exportCSV, exportJSON, copyLink, savePrefs, loadPrefs, loadTokenStorePref, saveToken, tokenInputChanged, cacheKey, saveCache, loadCache, signature, loadSnapshot, saveSnapshot, computeDelta, bindEvents, SORTERS };
