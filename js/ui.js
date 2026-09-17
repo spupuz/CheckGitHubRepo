@@ -188,7 +188,7 @@ APP.ui = (function(){
   function loadCache(pendingLang,pendingOwn){
     try{ const raw=localStorage.getItem(cacheKey()); if(!raw) return false; const c=JSON.parse(raw);
       const state=APP.state;
-      state.repos=c.repos||[]; state.authorCounts=c.authorCounts||Object.create(null); state.labelCounts=c.labelCounts||Object.create(null); state.usedMethod=c.method||'rest'; state.lastTs=c.ts||null;
+      state.repos=c.repos||[]; state.authorCounts=c.authorCounts ? Object.assign(Object.create(null), c.authorCounts) : Object.create(null); state.labelCounts=c.labelCounts ? Object.assign(Object.create(null), c.labelCounts) : Object.create(null); state.usedMethod=c.method||'rest'; state.lastTs=c.ts||null;
       if(!state.repos.length) return false;
       state.lastDelta=loadSnapshot();
       $('resultsPanel').style.display='block'; populateFilters();
@@ -205,8 +205,8 @@ APP.ui = (function(){
     }catch(e){ return false; }
   }
 
-  function loadSnapshot(){ try{ const raw=localStorage.getItem('ghPrChecker.snap.'+signature()); return raw?JSON.parse(raw):null; }catch(e){ return null; } }
-  function saveSnapshot(){ const state=APP.state; try{ const map={}; state.repos.forEach(r=>{ if(r.openPRs!=null) map[r.fullName]=r.openPRs; }); localStorage.setItem('ghPrChecker.snap.'+signature(),JSON.stringify({ts:Date.now(),total:state.repos.reduce((s,r)=>s+(r.openPRs||0),0),map})); }catch(e){} }
+  function loadSnapshot(){ try{ const raw=localStorage.getItem('ghPrChecker.snap.'+signature()); if(raw) { const snap=JSON.parse(raw); if(snap.map) snap.map=Object.assign(Object.create(null), snap.map); return snap; } return null; }catch(e){ return null; } }
+  function saveSnapshot(){ const state=APP.state; try{ const map=Object.create(null); state.repos.forEach(r=>{ if(r.openPRs!=null) map[r.fullName]=r.openPRs; }); localStorage.setItem('ghPrChecker.snap.'+signature(),JSON.stringify({ts:Date.now(),total:state.repos.reduce((s,r)=>s+(r.openPRs||0),0),map})); }catch(e){} }
   function computeDelta(prev){
     const state=APP.state;
     if(!prev||!prev.map){ $('deltaPanel').classList.remove('on'); state.lastDelta=null; return; }

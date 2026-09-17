@@ -15,3 +15,7 @@
 **Vulnerability:** The `authorCounts`, `labelCounts`, and `SORTERS` objects were initialized with standard object literals `{}`. An attacker manipulating label names, usernames, or sorting keys to match prototype properties (e.g., `__proto__`, `constructor`) could cause unexpected behavior, property overwriting, or application crashes when these dictionaries were iterated or checked for property existence.
 **Learning:** Even entirely client-side applications face Denial of Service or logic manipulation risks if user-provided strings are used as keys in standard JavaScript objects.
 **Prevention:** Use `Object.create(null)` to initialize plain dictionary objects that store arbitrary or user-defined string keys, ensuring they have no prototype chain.
+## 2024-05-18 - [Fix prototype pollution in dictionary serialization]
+**Vulnerability:** Dictionary objects used for mapping (e.g. `authorCounts`, `labelCounts`, `map`) were instantiated as plain objects `{}` and parsed blindly from `localStorage` using `JSON.parse()`.
+**Learning:** This exposes the application to prototype pollution and unexpected property access when user-provided data (like GitHub usernames) matches built-in object properties (like `__proto__` or `constructor`).
+**Prevention:** Always initialize dictionaries with `Object.create(null)` instead of `{}`. When deserializing JSON maps from storage, wrap the object with `Object.assign(Object.create(null), parsedMap)`.

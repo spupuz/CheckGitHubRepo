@@ -60,7 +60,7 @@ APP.charts = (function(){
       const r2=db.exec('SELECT timestamp, total_prs FROM scans ORDER BY id ASC');
       if(!r2||!r2.length||!r2[0].values.length){ $('historyChartsPanel').classList.remove('on'); return; }
       const scans=r2[0].values.map(v=>({ts:v[0],total:v[1]}));
-      const totalByDay={};
+      const totalByDay=Object.create(null);
       scans.forEach(s=>{ const k=dayKey(new Date(s.ts)); totalByDay[k]=s.total; });
       const totalSeries=days.map(d=>totalByDay[d.key]!=null?totalByDay[d.key]:null);
       const hasData=totalSeries.some(v=>v!=null);
@@ -83,7 +83,7 @@ APP.charts = (function(){
       const repoColors=[accent,warn,danger,'#8b5cf6','#06b6d4'];
       const repoSeries=topRepoNames.map((repoName,idx)=>{
         const r4=db.exec('SELECT s.timestamp, r.open_prs FROM repos r JOIN scans s ON r.scan_id=s.id WHERE r.full_name=? ORDER BY s.id ASC',[repoName]);
-        const repoByDay={};
+        const repoByDay=Object.create(null);
         r4[0].values.forEach(v=>{ repoByDay[dayKey(new Date(v[0]))]=v[1]; });
         const data=days.map(d=>repoByDay[d.key]!=null?repoByDay[d.key]:null);
         return {name:repoName,type:'line',smooth:false,connectNulls:true,symbol:'circle',symbolSize:5,lineStyle:{color:repoColors[idx%repoColors.length],width:2},itemStyle:{color:repoColors[idx%repoColors.length]},data};
