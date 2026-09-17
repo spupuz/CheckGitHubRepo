@@ -1,6 +1,6 @@
 window.APP = window.APP || {};
 APP.ui = (function(){
-  const { $, esc, cssVar, daysBetween, timeAgo, getUsernames, signature, syncHash, applyHash, tokenStorage, downloadBlob, multiOwner } = APP.utils;
+  const { $, esc, safeUrl, cssVar, daysBetween, timeAgo, getUsernames, signature, syncHash, applyHash, tokenStorage, downloadBlob, multiOwner } = APP.utils;
   const cfg = APP.config;
   // ⚡ Bolt: Optimize date sorting by using native ISO-8601 lexicographical string comparison instead of Date.parse()
   const SORTERS=Object.assign(Object.create(null), {
@@ -55,7 +55,7 @@ APP.ui = (function(){
       else if(prev && r.openPRs!=null){ deltaB='<span class="delta-badge down" title="new repo">new</span>'; }
       const prCell=r.openPRs==null
         ? `<span class="pill fail" role="button" tabindex="0" aria-label="Retry counting open PRs" data-retry="${esc(r.fullName)}" title="Count failed — click to retry">${prTxt}</span>`
-        : `<a href="https://github.com/${esc(r.fullName)}/pulls" target="_blank" rel="noopener" style="text-decoration:none;"><span class="pill ${prClass}">${prTxt}</span></a>${deltaB}`;
+        : `<a href="${safeUrl('https://github.com/' + r.fullName + '/pulls')}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;"><span class="pill ${prClass}">${prTxt}</span></a>${deltaB}`;
       const draft=r.draftPRs==null?'—':r.draftPRs;
       const norev=r.noReviewer==null?'—':(r.noReviewer>0?`<span class="stale">${r.noReviewer}</span>`:'0');
       const stale=r.stalePRs==null?'—':(r.stalePRs>0?`<span class="stale">${r.stalePRs}</span>`:'0');
@@ -65,7 +65,7 @@ APP.ui = (function(){
       const langDot=r.language?`<span class="lang-dot"></span>${esc(r.language)}`:'';
       const ownerTag=mo?`<span>${esc(r.owner)}</span>`:'';
       return `<tr data-glean-id="repo-row-${esc(r.fullName)}">
-        <td class="repo-name"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(mo?r.fullName:r.name)}</a>${r.private?'<span class="pill zero" style="margin-left:6px;font-size:10px;">private</span>':''}<div class="repo-meta">${langDot}${ownerTag}${r.fork?'<span>fork</span>':''}${r.archived?'<span>archived</span>':''}</div></td>
+        <td class="repo-name"><a href="${safeUrl(r.url)}" target="_blank" rel="noopener noreferrer">${esc(mo?r.fullName:r.name)}</a>${r.private?'<span class="pill zero" style="margin-left:6px;font-size:10px;">private</span>':''}<div class="repo-meta">${langDot}${ownerTag}${r.fork?'<span>fork</span>':''}${r.archived?'<span>archived</span>':''}</div></td>
         <td class="num">${prCell}</td>
         <td class="num">${draft}</td>
         <td class="num">${norev}</td>
