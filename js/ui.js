@@ -1,6 +1,6 @@
 window.APP = window.APP || {};
 APP.ui = (function(){
-  const { $, esc, cssVar, daysBetween, timeAgo, getUsernames, signature, syncHash, applyHash, tokenStorage, downloadBlob, multiOwner } = APP.utils;
+  const { $, debounce, esc, cssVar, daysBetween, timeAgo, getUsernames, signature, syncHash, applyHash, tokenStorage, downloadBlob, multiOwner } = APP.utils;
   const cfg = APP.config;
   // ⚡ Bolt: Optimize date sorting by using native ISO-8601 lexicographical string comparison instead of Date.parse()
   const SORTERS=Object.assign(Object.create(null), {
@@ -26,10 +26,10 @@ APP.ui = (function(){
     const checkMin=!isNaN(min);
     return list.filter(r=>{
       if(onlyWithPRs && !(r.openPRs>0)) return false;
-      if(f && !(r.nameLower || r.name.toLowerCase()).includes(f) && !(r.fullNameLower || r.fullName.toLowerCase()).includes(f)) return false;
+      if(checkMin && !((r.openPRs||0)>=min)) return false;
       if(lang && (r.language||'—')!==lang) return false;
       if(own && r.owner!==own) return false;
-      if(checkMin && !((r.openPRs||0)>=min)) return false;
+      if(f && !(r.nameLower || r.name.toLowerCase()).includes(f) && !(r.fullNameLower || r.fullName.toLowerCase()).includes(f)) return false;
       return true;
     });
   }
@@ -268,9 +268,9 @@ APP.ui = (function(){
     $('forgetToken').addEventListener('click', ()=>{ $('token').value=''; try{ localStorage.removeItem('ghPrChecker.token'); sessionStorage.removeItem('ghPrChecker.token'); }catch(e){} $('forgetToken').style.display='none'; });
     ['username','token'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); handlers.run(); }}));
     $('token').addEventListener('input', ()=>{ APP.api.syncUseTokenLogin(); tokenInputChanged(); });
-    $('filter').addEventListener('input', ()=>{ render(); syncHash(); });
+    $('filter').addEventListener('input', debounce(()=>{ render(); syncHash(); }, 250));
     ['fLang','fOwner'].forEach(id=>$(id).addEventListener('change', ()=>{ render(); syncHash(); }));
-    $('fMin').addEventListener('input', ()=>{ render(); syncHash(); });
+    $('fMin').addEventListener('input', debounce(()=>{ render(); syncHash(); }, 250));
     $('onlyWithPRs').addEventListener('change', ()=>{ render(); savePrefs(); syncHash(); });
     ['extended','includeForks','includeArchived','includeCollab','rememberUser'].forEach(id=>$(id).addEventListener('change', savePrefs));
     $('tokenStore').addEventListener('change', saveToken);
