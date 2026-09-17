@@ -23,7 +23,10 @@
 ## 2024-05-18 - Avoid chained array iterations for aggregations
 **Learning:** Multiple array methods (`filter`, `reduce`) applied sequentially on the same list of repositories block the main thread by traversing the array multiple times (O(N) * number of properties).
 **Action:** Replace sequential `.filter().reduce()` chains with a single `for` loop that calculates all aggregates in one pass, especially when iterating over large datasets like repositories.
-
 ## 2026-09-15 - Pre-calculated lowercase names
 **Learning:** Recomputing `.toLowerCase()` inside filter functions during render cycles causes unnecessary allocations and time complexity O(N).
 **Action:** When working with large lists that need case-insensitive search, pre-calculate the lowercased strings during the initial data fetch to optimize the filtering.
+
+## 2024-11-20 - Pre-computing Strings for Render Loops
+**Learning:** Performing string transformations like `.toLowerCase()` inside frequent operations such as `filter` or `sort` introduces unnecessary O(N) overhead during render loops. Each render or keystroke triggers re-evaluation of strings that rarely change.
+**Action:** When strings from API data will be frequently compared or searched case-insensitively, compute and store their transformed versions (e.g. `nameLower`) once during the initial data fetching phase. This shifts the O(N) workload out of the high-frequency render loop into the one-time data processing phase.
