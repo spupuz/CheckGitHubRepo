@@ -24,3 +24,7 @@
 ## 2024-05-25 - Focus management with dynamically removed elements
 **Learning:** In vanilla HTML/JS applications, when an element currently holding focus (like a "Clear filters" button in an empty state) is removed from the DOM, focus typically drops to the `body` element. This causes a confusing experience for keyboard and screen reader users, who lose their context in the page.
 **Action:** Whenever a button click results in the button's own removal (such as clearing a list filter and dismissing the empty state), explicitly use `.focus()` to shift focus to the next logical interactive element (like the search/filter input itself) to maintain a continuous accessibility experience.
+
+## 2024-05-27 - Focus Management for Custom Modals
+**Learning:** When building custom modals in vanilla JS without UI frameworks, keyboard and screen reader users get a degraded experience if focus isn't managed explicitly. If focus stays on the page behind the modal, they might interact with obscured content. If a focused modal element is removed or hidden and focus drops to the `<body>`, context is completely lost.
+**Action:** When a custom modal opens, explicitly move focus inside the modal (e.g., to its primary action or the wrapper itself via `setTimeout` to wait for paint). When a modal is dismissed (via overlay click, escape key, or cancel button), always return focus to the trigger element or the next logical step in the UI flow.

@@ -259,7 +259,10 @@ APP.db = (function(){
     const show=!dbDirHandle;
     const ov=$('dbModalOverlay');
     b.style.display=show?'block':'none';
-    if(ov) ov.style.display=show?'flex':'none';
+    if(ov) {
+      ov.style.display=show?'flex':'none';
+      if(show) setTimeout(()=>{ const btn=$('dbModalBtn'); if(btn) btn.focus(); }, 10);
+    }
     if(show){
       const n=db?(function(){ try{ const r=db.exec('SELECT COUNT(*) FROM scans'); return r&&r.length&&r[0].values.length?r[0].values[0][0]:0; }catch(e){ return 0; } })():0;
       const txt=(n?('The database contains '+n+' scan'+(n===1?'':'s')+' — stored only in this browser. '):'')+'Choose a folder (for example, the one containing this file) so the SQLite database is created and kept on disk automatically after each scan.';

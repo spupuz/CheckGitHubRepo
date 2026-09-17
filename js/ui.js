@@ -261,7 +261,7 @@ APP.ui = (function(){
     $('pickFolder').addEventListener('click', APP.db.pickDBFolder);
     if($('dbBannerBtn')) $('dbBannerBtn').addEventListener('click', APP.db.pickDBFolder);
     if($('dbModalBtn')) $('dbModalBtn').addEventListener('click', APP.db.pickDBFolder);
-    if($('dbModalLater')) $('dbModalLater').addEventListener('click', ()=>{ const ov=$('dbModalOverlay'); if(ov) ov.style.display='none'; });
+    if($('dbModalLater')) $('dbModalLater').addEventListener('click', ()=>{ const ov=$('dbModalOverlay'); if(ov) ov.style.display='none'; const b=$('dbBannerBtn')||$('username'); if(b) b.focus(); });
     $('copyLink').addEventListener('click', copyLink);
     $('retryFailed').addEventListener('click', handlers.retryFailed);
     $('showAllBtn').addEventListener('click', ()=>{ APP.state.showAll=true; render(); });
@@ -289,6 +289,8 @@ APP.ui = (function(){
         const ov = $('dbModalOverlay');
         if (ov && ov.style.display !== 'none') {
           ov.style.display = 'none';
+          const b = $('dbBannerBtn') || $('username');
+          if (b) b.focus();
         }
       }
     });
@@ -298,6 +300,8 @@ APP.ui = (function(){
       dbModalOverlay.addEventListener('click', e => {
         if (e.target === dbModalOverlay) {
           dbModalOverlay.style.display = 'none';
+          const b = $('dbBannerBtn') || $('username');
+          if (b) b.focus();
         }
       });
     }
