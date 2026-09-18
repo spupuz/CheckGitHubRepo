@@ -24,3 +24,7 @@
 **Vulnerability:** Dictionaries loaded from `localStorage` using `JSON.parse` inherited `Object.prototype`, reopening prototype pollution vectors, despite being previously initialized with `Object.create(null)`.
 **Learning:** `JSON.parse` implicitly attaches `Object.prototype` to deserialized objects, undoing prototype pollution mitigations.
 **Prevention:** Always wrap `JSON.parse` results for sensitive dictionaries with `Object.assign(Object.create(null), parsedData)` to ensure they do not inherit potentially dangerous native properties.
+## 2025-02-28 - XSS Mitigation in Anchor Tags
+**Vulnerability:** The application used `esc()` for `href` attributes, which mitigates HTML injection but allows Javascript URI execution (e.g. `javascript:alert(1)`) if a malicious URL is returned by the API or provided through user input. Additionally, external links leaked the Referer header, exposing potentially sensitive path parameters or query strings to third-party sites.
+**Learning:** `esc()` only escapes characters relevant to HTML parsing, it does not validate or sanitize schemes for URLs. XSS can be achieved if a URL begins with `javascript:`.
+**Prevention:** Implement and use a scheme-validating function like `safeUrl(url)` that enforces `http://` or `https://` for all dynamic `href` properties. Furthermore, always use `rel="noopener noreferrer"` for external anchors.

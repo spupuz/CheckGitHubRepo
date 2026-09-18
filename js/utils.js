@@ -7,6 +7,7 @@ APP.utils = (function(){
     return function(...args){ clearTimeout(t); t=setTimeout(()=>fn.apply(this,args),ms); };
   }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function safeUrl(u){ const s=String(u==null?'':u).trim(); return (/^(https?:\/\/)/i.test(s))?esc(s):'#'; }
   function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
   function daysBetween(iso){ if(!iso) return null; return Math.floor((Date.now()-Date.parse(iso))/86400000); }
   function timeAgo(iso){ if(!iso) return '—'; const s=Math.floor((Date.now()-Date.parse(iso))/1000); for(const [lab,sec] of [['y',31536000],['mo',2592000],['d',86400],['h',3600],['m',60]]){ const v=Math.floor(s/sec); if(v>=1) return v+' '+lab+' ago'; } return 'now'; }
@@ -49,5 +50,5 @@ APP.utils = (function(){
   }
   function tokenStorage(){ return $('tokenStore').value; }
   function downloadBlob(content,type,name){ const blob=new Blob([content],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href); }
-  return { $, sleep, debounce, esc, cssVar, daysBetween, timeAgo, dayKey, toRGBA, updateRate, rateLimitMsg, headers, affiliations, getUsernames, signature, multiOwner, syncHash, applyHash, tokenStorage, downloadBlob };
+return { $, sleep, debounce, esc, safeUrl, cssVar, daysBetween, timeAgo, dayKey, toRGBA, updateRate, rateLimitMsg, headers, affiliations, getUsernames, signature, multiOwner, syncHash, applyHash, tokenStorage, downloadBlob };
 })();
