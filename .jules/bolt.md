@@ -33,3 +33,6 @@
 ## 2024-05-24 - Debouncing filter inputs and re-ordering conditions
 **Learning:** Frequent keystrokes in text-based filters that trigger full UI re-renders and list filtering cause UI freezing (especially noticeable with large numbers of repositories). The filtering array operations were also not optimal because expensive string `includes` operations were executed before cheaper comparisons.
 **Action:** Always wrap `input` event handlers for filters with a `debounce` utility (e.g., 250ms) to batch updates. Reorder filtering operations to "fail fast" by evaluating O(1) checks (number, boolean) before expensive O(N) string operations.
+## 2024-11-20 - Set Difference via Array Allocations
+**Learning:** Using `new Set()` and array spread operators `[...set].filter()` to compute set differences (e.g. added/removed items) creates numerous intermediate O(N) array allocations. In client-side logic handling thousands of items, this creates significant GC pressure and unnecessary traversals.
+**Action:** When computing set differences or populated distinct property lists from large arrays, avoid `.map()`, `new Set()`, and `[...set]`. Instead, use a single `for` loop to build lookup dictionaries (`Object.create(null)`) and count variations simultaneously.

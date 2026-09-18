@@ -115,11 +115,20 @@ const { $, debounce, esc, safeUrl, cssVar, daysBetween, timeAgo, getUsernames, s
 
   function populateFilters(){
     const repos=APP.state.repos;
-    const langs=[...new Set(repos.map(r=>r.language||'—'))].sort();
+    // ⚡ Bolt: Populate filter dropdowns in a single pass instead of multiple maps and Sets
+    const langSet = Object.create(null);
+    const ownerSet = Object.create(null);
+    for (let i = 0, len = repos.length; i < len; i++) {
+      langSet[repos[i].language || '—'] = true;
+      ownerSet[repos[i].owner] = true;
+    }
+    const langs = Object.keys(langSet).sort();
+    const owners = Object.keys(ownerSet);
+
     const cur=$('fLang').value;
     $('fLang').innerHTML='<option value="">All languages</option>'+langs.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
     if(langs.includes(cur)) $('fLang').value=cur;
-    const owners=[...new Set(repos.map(r=>r.owner))];
+
     if(owners.length>1){ const co=$('fOwner').value; $('fOwner').style.display=''; $('fOwner').innerHTML='<option value="">All owners</option>'+owners.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join(''); if(owners.includes(co)) $('fOwner').value=co; }
     else $('fOwner').style.display='none';
   }
@@ -206,23 +215,48 @@ const { $, debounce, esc, safeUrl, cssVar, daysBetween, timeAgo, getUsernames, s
 
   function loadSnapshot(){ try{ const raw=localStorage.getItem('ghPrChecker.snap.'+signature()); if(raw) { const snap=JSON.parse(raw); if(snap.map) snap.map=Object.assign(Object.create(null), snap.map); return snap; } return null; }catch(e){ return null; } }
   function saveSnapshot(){ const state=APP.state; try{ const map=Object.create(null); state.repos.forEach(r=>{ if(r.openPRs!=null) map[r.fullName]=r.openPRs; }); localStorage.setItem('ghPrChecker.snap.'+signature(),JSON.stringify({ts:Date.now(),total:state.repos.reduce((s,r)=>s+(r.openPRs||0),0),map})); }catch(e){} }
+  // ⚡ Bolt: Optimize delta calculations by preventing O(N) intermediate array creations for map, Set, and filter.
   function computeDelta(prev){
     const state=APP.state;
     if(!prev||!prev.map){ $('deltaPanel').classList.remove('on'); state.lastDelta=null; return; }
     state.lastDelta=prev;
-    const nowTotal=state.repos.reduce((s,r)=>s+(r.openPRs||0),0);
+
+    let nowTotal = 0, added = 0, removed = 0;
+    const nowNames = Object.create(null);
+    const changes = [];
+
+    // Process single pass over state.repos (O(N))
+    for (let i = 0, len = state.repos.length; i < len; i++) {
+      const r = state.repos[i];
+      if (r.openPRs != null) {
+        nowTotal += r.openPRs;
+        nowNames[r.fullName] = true;
+
+        if (r.fullName in prev.map) {
+          const d = r.openPRs - prev.map[r.fullName];
+          if (d !== 0) changes.push([r.fullName, d]);
+        } else {
+          added++;
+        }
+      } else {
+        nowNames[r.fullName] = true; // Still track name even if PR count failed, to accurately reflect added/removed repos
+        if (!(r.fullName in prev.map)) added++;
+      }
+    }
+
+    // Process second quick pass over prev.map keys to find removed (O(prev.size))
+    for (const fullName in prev.map) {
+      if (!nowNames[fullName]) removed++;
+    }
+
     const diff=nowTotal-(prev.total||0);
-    const nowNames=new Set(state.repos.map(r=>r.fullName)), prevNames=new Set(Object.keys(prev.map));
-    const added=[...nowNames].filter(n=>!prevNames.has(n)).length;
-    const removed=[...prevNames].filter(n=>!nowNames.has(n)).length;
     const cls=diff>0?'up':diff<0?'down':'flat';
     $('deltaRow').innerHTML=
       `<span class="delta-chip">Total open PRs: <span class="n ${cls}">${diff>0?'+':''}${diff}</span> (now ${nowTotal})</span>`+
       `<span class="delta-chip">Repos added: <span class="n">${added}</span></span>`+
       `<span class="delta-chip">Repos removed: <span class="n">${removed}</span></span>`+
       `<span class="delta-chip flat">vs ${new Date(prev.ts).toLocaleString('en-US')}</span>`;
-    const changes=[];
-    state.repos.forEach(r=>{ if(r.openPRs!=null && (r.fullName in prev.map)){ const d=r.openPRs-prev.map[r.fullName]; if(d!==0) changes.push([r.fullName,d]); } });
+
     changes.sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
     $('deltaList').innerHTML=changes.slice(0,6).map(([n,d])=>`<li>${esc(n)}: <span class="${d>0?'up':'down'}">${d>0?'+':''}${d} PR</span></li>`).join('');
     $('deltaPanel').classList.add('on');
