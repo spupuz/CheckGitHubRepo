@@ -30,3 +30,6 @@
 ## 2024-11-20 - Pre-computing Strings for Render Loops
 **Learning:** Performing string transformations like `.toLowerCase()` inside frequent operations such as `filter` or `sort` introduces unnecessary O(N) overhead during render loops. Each render or keystroke triggers re-evaluation of strings that rarely change.
 **Action:** When strings from API data will be frequently compared or searched case-insensitively, compute and store their transformed versions (e.g. `nameLower`) once during the initial data fetching phase. This shifts the O(N) workload out of the high-frequency render loop into the one-time data processing phase.
+## 2024-05-24 - Debouncing filter inputs and re-ordering conditions
+**Learning:** Frequent keystrokes in text-based filters that trigger full UI re-renders and list filtering cause UI freezing (especially noticeable with large numbers of repositories). The filtering array operations were also not optimal because expensive string `includes` operations were executed before cheaper comparisons.
+**Action:** Always wrap `input` event handlers for filters with a `debounce` utility (e.g., 250ms) to batch updates. Reorder filtering operations to "fail fast" by evaluating O(1) checks (number, boolean) before expensive O(N) string operations.
