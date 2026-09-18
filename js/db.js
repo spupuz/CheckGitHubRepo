@@ -268,7 +268,10 @@ APP.db = (function(){
     const show=needFolder||needReconnect;
     const ov=$('dbModalOverlay');
     b.style.display=show?'block':'none';
-    if(ov) ov.style.display=needFolder?'flex':'none';
+if(ov) {
+      ov.style.display=needFolder?'flex':'none';
+      if(needFolder) setTimeout(()=>{ const btn=$('dbModalBtn'); if(btn) btn.focus(); }, 10);
+    }
     if(show){
       const n=db?(function(){ try{ const r=db.exec('SELECT COUNT(*) FROM scans'); return r&&r.length&&r[0].values.length?r[0].values[0][0]:0; }catch(e){ return 0; } })():0;
       const txt=needReconnect
