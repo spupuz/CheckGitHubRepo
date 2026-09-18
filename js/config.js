@@ -1,6 +1,6 @@
 window.APP = window.APP || {};
 APP.config = {
-  VERSION: 'v0.7.0',
+  VERSION: 'v0.7.1',
   RENDER_CAP: 400,
   STALE_DAYS: 30,
   MAX_PAGES: 50,

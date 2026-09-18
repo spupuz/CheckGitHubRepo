@@ -2,7 +2,7 @@ window.APP = window.APP || {};
 APP.db = (function(){
   const { $, daysBetween } = APP.utils;
   const cfg = APP.config;
-  let db=null, dbReady=false, dbDirHandle=null;
+  let db=null, dbReady=false, dbDirHandle=null, folderLoaded=false;
   let dbReadyPromise=null, dbReadyResolve=null;
 
   function idbOpen(){
@@ -145,6 +145,7 @@ APP.db = (function(){
           try{
             if(restored) mergeDBFromBytes(fb);
             else restored=loadDBFromBytes(fb);
+            folderLoaded=true;
           }catch(e){}
         }
         if(restored){
@@ -205,10 +206,14 @@ APP.db = (function(){
     if(!dbReady||!db||!dbDirHandle) return false;
     if(!await ensureDirPermission()){ bindAutoSave(); return false; }
     try{
+      const existingBytes=await loadFolderBytes();
+      if(existingBytes) mergeDBFromBytes(existingBytes);
       const fh=await dbDirHandle.getFileHandle(cfg.DB_FILE,{create:true});
       const w=await fh.createWritable();
       await w.write(db.export());
       await w.close();
+      folderLoaded=true;
+      bindAutoSave();
       return true;
     }catch(e){ return false; }
   }
@@ -231,6 +236,7 @@ APP.db = (function(){
           loaded=loaded||scanCount()>0;
         }
         if(loaded){
+          folderLoaded=true;
           persistToIDB();
           $('dbPanel').style.display='block';
           renderDBStats();
@@ -245,26 +251,34 @@ APP.db = (function(){
         const count=n&&n.length&&n[0].values.length?n[0].values[0][0]:0;
         APP.ui.setStatus(`Database loaded from "${dbDirHandle.name}" (${count} scan${count===1?'':'s'} found).`);
       }
+      bindAutoSave();
     }catch(e){}
   }
   function bindAutoSave(){
-    $('pickFolder').textContent=(dbDirHandle?'Change folder':'DB folder');
-    if(dbDirHandle) $('pickFolder').classList.add('bound');
+    $('pickFolder').textContent=dbDirHandle?(folderLoaded?'Change folder':'Reconnect DB folder'):'DB folder';
+    if(dbDirHandle&&folderLoaded) $('pickFolder').classList.add('bound');
     else $('pickFolder').classList.remove('bound');
     updateDbBanner();
   }
   function updateDbBanner(){
     const b=$('dbBanner');
     if(!b) return;
-    const show=!dbDirHandle;
+    const needFolder=!dbDirHandle;
+    const needReconnect=!!dbDirHandle&&!folderLoaded;
+    const show=needFolder||needReconnect;
     const ov=$('dbModalOverlay');
     b.style.display=show?'block':'none';
-    if(ov) ov.style.display=show?'flex':'none';
+    if(ov) ov.style.display=needFolder?'flex':'none';
     if(show){
       const n=db?(function(){ try{ const r=db.exec('SELECT COUNT(*) FROM scans'); return r&&r.length&&r[0].values.length?r[0].values[0][0]:0; }catch(e){ return 0; } })():0;
-      const txt=(n?('The database contains '+n+' scan'+(n===1?'':'s')+' — stored only in this browser. '):'')+'Choose a folder (for example, the one containing this file) so the SQLite database is created and kept on disk automatically after each scan.';
-      $('dbBannerText').textContent=txt;
-      if($('dbModalText')) $('dbModalText').textContent=txt;
+      const txt=needReconnect
+        ? 'The database folder needs a new access grant from the browser. Click "Choose folder" and pick the same folder (the one containing this file) to reload your saved scan history.'
+        : (n?('The database contains '+n+' scan'+(n===1?'':'s')+' — stored only in this browser. '):'')+'Choose a folder (for example, the one containing this file) so the SQLite database is created and kept on disk automatically after each scan.';
+      if($('dbBannerText')) $('dbBannerText').textContent=txt;
+      if($('dbBannerTitle')){
+        $('dbBannerTitle').textContent=needReconnect?'Reconnect the database folder':'Choose a folder to save the database';
+      }
+      if(needFolder&&$('dbModalText')) $('dbModalText').textContent=txt;
     }
   }
   function renderDBStats(){
